@@ -3,10 +3,12 @@
 use strict;
 use warnings;
 
+use Template::Alloy;
 use XML::Simple;
 
 my $command = XMLin(
   './commands.xml',
+  ForceArray => [qw( arg )],
   GroupTags => {
     request => 'arg',
     response => 'arg',
@@ -36,7 +38,7 @@ push @lines, do {
 chomp @lines;
 
 my $section = '-';
-my @sections;
+my ( %section, %parm );
 
 for my $line ( @lines ) {
 
@@ -60,7 +62,6 @@ for my $line ( @lines ) {
     $section =~ s/\bvm\b/VM/i;
     $section =~ s/\bvpn\b/VPN/i;
 
-    push @sections, $section;
     next;
 
   } elsif ( $section ne '-' && $line =~ /^([^#]+)=.*;(\d+)$/ ) {
@@ -71,6 +72,45 @@ for my $line ( @lines ) {
 
       $command->{ $cmd }{ section } = $section;
       $command->{ $cmd }{ level   } = $level;
+
+      push @{ $section{ $section } }, $cmd;
+
+      # Some cleanup XMLin can't do
+      my ( $request, $response );
+
+      my $work = $command->{ $cmd }{ request };
+
+      #print "Command: $cmd\n";
+
+      for my $parm ( keys %$work ) {
+
+        #print "$parm\n";
+
+        my $required = lc( $work->{ $parm }{ required } ) eq 'true'  ? 'required'
+                     : lc( $work->{ $parm }{ required } ) eq 'false' ? 'optional'
+                     :     $work->{ $parm }{ required };
+
+        $work->{ $parm }{ description } ||= 'no description';
+
+        $request->{ $required }{ $parm } = $work->{ $parm }{ description };
+
+        no warnings 'uninitialized';
+        $parm{ $parm }->{ $work->{ $parm }{ description } }++;
+
+      }
+
+      $work = $command->{ $cmd }{ response };
+
+      for my $parm ( keys %$work ) {
+
+        $work->{ $parm }{ description } ||= 'no description';
+        $response->{ $parm } = $work->{ $parm }{ description };
+        $parm{ $parm }->{ $work->{ $parm }{ description } }++;
+
+      }
+
+      $command->{ $cmd }{ request } = $request;
+      $command->{ $cmd }{ response } = $response;
 
     } else {
 
@@ -91,26 +131,47 @@ for my $line ( @lines ) {
   }
 }
 
-my %check;
+if ( 0 ) {
 
-my @expected = qw( description isAsync level request response section );
+  my %check;
 
-for my $c ( keys %$command ) {
+  my @expected = qw( description isAsync level request response section );
 
-  my @k = keys %{ $command->{ $c } };
-  $check{ $_ }++ for @k;
+  for my $c ( keys %$command ) {
 
-  my %tmp;
-  $tmp{ $_ }++ for @expected;
-  $tmp{ $_ }++ for @k;
+    my @k = keys %{ $command->{ $c } };
+    $check{ $_ }++ for @k;
 
-  for my $t ( keys %tmp ) {
+    my %tmp;
+    $tmp{ $_ }++ for @expected;
+    $tmp{ $_ }++ for @k;
 
-    next if $tmp{ $t } == 2;
-    warn "$c is missing $t\n";
+    for my $t ( keys %tmp ) {
 
+      next if $tmp{ $t } == 2;
+      warn "$c is missing $t\n";
+
+    }
   }
+
+  print "$_ = $check{ $_ }\n" for keys %check;
+  print "$_\n" for sort keys %section;
+
 }
 
-print "$_ = $check{ $_ }\n" for keys %check;
-print "$_\n" for sort @sections;
+my $template = Template::Alloy->new( INCLUDE_PATH => [ '.' ] );
+
+my $swap = {
+
+  section => \%section,
+  command => $command,
+  parm    => \%parm,
+
+};
+
+$template->process( 'API_pm.tt', $swap, \my $out )
+  or die "Unable to process: ", $template->error;
+
+open my $FH, '>', './API.pm'
+  or die "Unable to open API.pm: $!\n";
+print $FH $out;
