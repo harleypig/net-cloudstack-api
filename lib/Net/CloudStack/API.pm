@@ -12,6 +12,8 @@ use Params::Validate ':all';
 use Scalar::Util 'blessed';
 use Sub::Exporter;
 
+my @exports;
+
 { # Begin general hiding
 
 ##############################################################################
@@ -6168,15 +6170,17 @@ my $command = {
 ##############################################################################
 # Setup exports
 
-my ( $exports, $groups );
+my ( $exports, $groups, @all );
 
 for my $cmd ( keys %$command ) {
 
-  $exports->{ $cmd } = \'_generate_method';
+  $exports->{ $cmd } = \&_generate_method;
   push @{ $groups->{ $command->{ $cmd }{ section } } }, $cmd;
-  push @{ $groups->{ all } }, $cmd;
+  push @all, $cmd;
 
 }
+
+$groups->{ all } = \@all;
 
 my $config = {
 
@@ -6192,7 +6196,7 @@ Sub::Exporter::setup_exporter( $config );
 
 # handle either a list of elements or a hashref
 
-sub new { bless ref $_[0] || $_[0] }
+sub new { bless {}, ref $_[0] || $_[0] }
 
 our $AUTOLOAD;
 
@@ -6219,22 +6223,20 @@ sub DESTROY {}
 
 sub _generate_method {
 
-  # We don't need to know what class we are in--the calling routine will handle the returned code reference.
+  my $cmd = $_[1]; # We don't need the first parm.
 
-  my ( undef, $method ) = @_;
-
-  croak "Unknown method: $method"
-    unless exists $command->{ $method };
+  croak "Unknown method: $cmd"
+    unless exists $command->{ $cmd };
 
   # FIXME: more robust handling of at least the obvious data types.
   my %validate;
 
   # Only build this part of the hash once ...
   $validate{ spec }{ $_ } = { type => SCALAR }
-    for keys %{ $command->{ $method }{ request }{ required } };
+    for keys %{ $command->{ $cmd }{ request }{ required } };
 
   $validate{ spec }{ $_ } = { type => SCALAR, optional => 1 }
-    for keys %{ $command->{ $method }{ request }{ optional } };
+    for keys %{ $command->{ $cmd }{ request }{ optional } };
 
   return sub {
 
@@ -6244,10 +6246,11 @@ sub _generate_method {
     $validate{ params } = \@_;
     my %arg = validate_with( %validate );
 
-    my @proc = $method;
+    my @proc = $cmd;
 
     ( push @proc, join '&', map { "$_=$arg{$_}" } keys %arg )
       if keys %arg;
+
 
     if ( blessed $self ) {
 

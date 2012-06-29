@@ -1,13 +1,16 @@
 
-use Test::Most tests => 1;
-#use Test::NoWarnings;
+use Test::Most tests => 7;
+use Test::NoWarnings;
 
-eval "use Net::CloudStack::API; 1" or BAIL_OUT $@;
-eval "use Net::CloudStack::API 'listVirtualMachines'; 1" or BAIL_OUT $@;
-eval "use Net::CloudStack::API ':all'; 1" or BAIL_OUT $@;
+bail_on_fail;
 
-# Need to do
-# eval "use Net::CloudStack::API 'badmethod'" ...
-# eval "use Net::CloudStack::API ':badgroup'" ...
+ok( eval 'use Net::CloudStack::API;                       1', 'basic use' );
+ok( eval 'use Net::CloudStack::API ();                    1', 'explicitly import nothing' );
+ok( eval "use Net::CloudStack::API 'listVirtualMachines'; 1", 'one method generated' );
+ok( eval "use Net::CloudStack::API ':all';                1", 'all methods generate' );
 
-ok( 1, 'yay' );
+eval "use Net::CloudStack::API 'badmethod'";
+like( $@, qr/"badmethod" is not exported/, 'badmethod failed correctly' );
+
+eval "use Net::CloudStack::API ':badgroup'";
+like( $@, qr/group "badgroup" is not exported/, 'badgroup failed correctly' );
