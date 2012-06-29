@@ -3,7 +3,9 @@
 use strict;
 use warnings;
 
+use Data::Dump 'dump';
 use Template::Alloy;
+use Text::Wrap;
 use XML::Simple;
 
 my $command = XMLin(
@@ -37,6 +39,9 @@ push @lines, do {
 
 chomp @lines;
 
+# login and logout aren't represented in the above files, so let's fake it!
+push @lines, '', '# Session commands', 'login=;15', 'logout=;15';
+
 my $section = '-';
 my ( %section, %parm );
 
@@ -62,6 +67,8 @@ for my $line ( @lines ) {
     $section =~ s/\bvm\b/VM/i;
     $section =~ s/\bvpn\b/VPN/i;
 
+    $section =~ s/\W//g;
+
     next;
 
   } elsif ( $section ne '-' && $line =~ /^([^#]+)=.*;(\d+)$/ ) {
@@ -69,6 +76,8 @@ for my $line ( @lines ) {
     my ( $cmd, $level ) = ( $1, $2 );
 
     if ( exists $command->{ $cmd } ) {
+
+      $command->{ $cmd }{ description } =~ s/^\s*(.*?)\s*$/$1/;
 
       $command->{ $cmd }{ section } = $section;
       $command->{ $cmd }{ level   } = $level;
@@ -80,22 +89,20 @@ for my $line ( @lines ) {
 
       my $work = $command->{ $cmd }{ request };
 
-      #print "Command: $cmd\n";
-
       for my $parm ( keys %$work ) {
-
-        #print "$parm\n";
 
         my $required = lc( $work->{ $parm }{ required } ) eq 'true'  ? 'required'
                      : lc( $work->{ $parm }{ required } ) eq 'false' ? 'optional'
                      :     $work->{ $parm }{ required };
 
-        $work->{ $parm }{ description } ||= 'no description';
+        my $description = exists $work->{ $parm }{ description }
+                        ? $work->{ $parm }{ description }
+                        : 'no description';
 
-        $request->{ $required }{ $parm } = $work->{ $parm }{ description };
+        $description =~ s/^\s*(.*?)\s*$/$1/;
 
-        no warnings 'uninitialized';
-        $parm{ $parm }->{ $work->{ $parm }{ description } }++;
+        $request->{ $required }{ $parm } = $description;
+        $parm{ $parm }->{ $description }++;
 
       }
 
@@ -103,9 +110,14 @@ for my $line ( @lines ) {
 
       for my $parm ( keys %$work ) {
 
-        $work->{ $parm }{ description } ||= 'no description';
-        $response->{ $parm } = $work->{ $parm }{ description };
-        $parm{ $parm }->{ $work->{ $parm }{ description } }++;
+        my $description = exists $work->{ $parm }{ description }
+                        ? $work->{ $parm }{ description }
+                        : 'no description';
+
+        $description =~ s/^\s*(.*?)\s*$/$1/;
+
+        $response->{ $parm } = $description;
+        $parm{ $parm }->{ $description }++;
 
       }
 
@@ -161,17 +173,57 @@ if ( 0 ) {
 
 my $template = Template::Alloy->new( INCLUDE_PATH => [ '.' ] );
 
+# Build the exports array string.
+$Text::Wrap::columns = 78;
+my $exports = wrap( '  ', '  ', sort keys %$command );
+
+# Build the groups hash reference.
+my @groups;
+
+for my $g ( sort keys %section ) {
+
+  ( my $g2 = $g ) =~ s/\W//g;
+  my $commands = join ' ', sort @{ $section{ $g } };
+  my $group = "  $g2 => [qw( $commands )],";
+
+  if ( length $group > 79 ) {
+
+    $commands = wrap( '    ', '    ', $commands );
+    $group = "  $g2 => [qw(\n\n$commands\n\n  )],";
+
+  }
+
+  push @groups, $group;
+
+}
+
+my $groups = join "\n\n", @groups;
+
 my $swap = {
 
-  section => \%section,
-  command => $command,
-  parm    => \%parm,
+  cmd_dump => ( dump $command ),
+  command  => $command,
+  exports  => $exports,
+  groups   => $groups,
+  parm     => \%parm,
+  section  => \%section,
 
 };
 
-$template->process( 'API_pm.tt', $swap, \my $out )
+# Generate the pod file
+$template->process( 'API_pod.tt', $swap, \my $pod )
+  or die "Unable to process pod: ", $template->error;
+
+open my $POD, '>', './API.pod'
+  or die "Unable to open API.pod: $!\n";
+
+print $POD $pod;
+
+# Generate the pm file
+$template->process( 'API_pm.tt', $swap, \my $pm )
   or die "Unable to process: ", $template->error;
 
-open my $FH, '>', './API.pm'
+open my $PM, '>', './API.pm'
   or die "Unable to open API.pm: $!\n";
-print $FH $out;
+
+print $PM $pm;

@@ -7,80 +7,165 @@ use warnings;
 use namespace::autoclean;
 
 use Carp;
+use Net::CloudStack;
+use Params::Validate ':all';
+use Scalar::Util 'blessed';
 use Sub::Exporter;
 
 my @exports;
 
-=head1 DESCRIPTION
+{ # Begin general hiding
 
-This module handles parameter checking for the various calls available from a cloudstack service.
+##############################################################################
+# Base structure
 
-Probably should include some explanatory text here about how this file is generated.
+my $command = [% cmd_dump %];
 
-=head1 METHODS
+##############################################################################
+# Setup exports
 
-Something about how these are the methods available.
+my ( $exports, $groups, @all );
 
-(A) indicates the method is asynchronous.
+for my $cmd ( keys %$command ) {
 
-Include text and reference here for async calls from docs.
+  $exports->{ $cmd } = \&_generate_method;
+  push @{ $groups->{ $command->{ $cmd }{ section } } }, $cmd;
+  push @all, $cmd;
 
-[% FOREACH s = section -%]
-=head1 [% s.key.upper %] METHODS
+}
 
-[% FOREACH m = s.value -%]
-=head2 [% m %][% IF d.isAsync eq 'true' %] (A)[% END %]
+$groups->{ all } = \@all;
 
-[% d = command.$m -%]
-[% d.description %]
+my $config = {
 
-User Level: [% d.level %] (FIXME: this needs to be improved)
+  exports => $exports,
+  groups  => $groups,
 
-=head3 Request
+};
 
-[% IF d.request.exists( 'required' ) -%]
-=head4 Required Parameters
+Sub::Exporter::setup_exporter( $config );
 
-=over
+##############################################################################
+# Setup OO interface
 
-[% FOREACH p = d.request.required -%]
-=item [% p.key %]
+# handle either a list of elements or a hashref
 
-[% p.value %]
+sub new { bless ref $_[0] || $_[0] }
 
-[% END %][% COMMENT end FOREACH p = d.request.required %][% END -%]
-=back
-[% END %][% COMMENT end IF d.request.exists %][% END -%]
+our $AUTOLOAD;
 
-[% IF d.request.exists( 'optional' ) -%]
-=head4 Optional Parameters
+sub AUTOLOAD {
 
-=over
+  my $self = shift;
 
-[% FOREACH p = d.request.optional -%]
-=item [% p.key %]
+  ( my $method = $AUTOLOAD ) =~ s/^.*:://;
 
-[% p.value %]
+  croak "unknown method $method"
+    unless exists $command->{ $method };
 
-[% END %][% COMMENT end FOREACH p = d.request.optional %][% END -%]
-=back
-[% END %][% COMMENT end IF d.request.exists %][% END -%]
+  no strict 'refs';
+  *$AUTOLOAD = $self->_generate_method( $method );
 
-=head3 Response
+  goto &$AUTOLOAD;
 
-=over
+}
 
-[% FOREACH p = d.response -%]
-=item [% p.key %]
+sub DESTROY {}
 
-[% p.value %]
+##############################################################################
+# Utility methods
 
-[% END %][% COMMENT end FOREACH p = d.response %][% END -%]
-=back
+sub _generate_method {
 
-[% END %][% END -%]
-=cut
+  shift if blessed $_[0]; # Don't need to know which class we are if we're an object.
+
+  my $cmd = shift;
+
+  croak "Unknown method: $cmd"
+    unless exists $command->{ $cmd };
+
+  # FIXME: more robust handling of at least the obvious data types.
+  my %validate;
+
+  # Only build this part of the hash once ...
+  $validate{ spec }{ $_ } = { type => SCALAR }
+    for keys %{ $command->{ $cmd }{ request }{ required } };
+
+  $validate{ spec }{ $_ } = { type => SCALAR, optional => 1 }
+    for keys %{ $command->{ $cmd }{ request }{ optional } };
+
+  return sub {
+
+    my $self = shift
+      if blessed $_[0];
+
+    $validate{ params } = \@_;
+    my %arg = validate_with( %validate );
+
+    my @proc = $cmd;
+
+    ( push @proc, join '&', map { "$_=$arg{$_}" } keys %arg )
+      if keys %arg;
+
+
+    if ( blessed $self ) {
+
+      return $self->api->proc( @proc )->response;
+
+    } else {
+
+      return api()->proc( @proc )->response;
+
+    }
+  };
+}
+
+{ # Hide api stuff
+
+  # Functional interface just returns an instance of an Net::CloudStack object.
+  # OO interface creates an instance if one does not exist in the current instance of this package.
+
+  my $api;
+
+  sub api {
+
+    my ( $self, $args, $work );
+
+    if ( @_ && blessed $_[0] ) { # OO interface
+
+      ( $self, $args ) = @_;
+
+      return $self->{ api } = Net::CloudStack->new( $args )
+        if ! exists $self->{ api };
+
+      croak "unexpected api condition (oo)"
+        if ! blessed $self->{ api } || blessed $self->{ api } ne 'Net::CloudStack';
+
+      $work = $self->{ api };
+
+    } else { # Functional interface
+
+      $args = shift;
+
+      return $api = Net::CloudStack->new( $args )
+        if ! blessed $api;
+
+      croak "unexpected api condition (functional)"
+        if blessed $api ne 'Net::CloudStack';
+
+      $work = $api;
+
+    }
+
+    croak "args must be a hashref"
+      unless ref $args eq 'HASH';
+
+    $work->$_( $args->{ $_ } )
+      for keys %$args;
+
+  }
+} # End hiding api stuff
+
+} # End general hiding
 
 1;
-
-[% DUMP %]

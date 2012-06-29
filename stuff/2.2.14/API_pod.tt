@@ -1,0 +1,71 @@
+package Net::CloudStack::API;
+
+# ABSTRACT: Basic request and response handling for calls to a CloudStack service.
+
+=head1 DESCRIPTION
+
+This module handles parameter checking for the various calls available from a cloudstack service.
+
+Probably should include some explanatory text here about how this file is generated.
+
+=head1 METHODS
+
+Something about how these are the methods available.
+
+(A) indicates the method is asynchronous.
+
+Include text and reference here for async calls from docs.
+
+[% FOREACH s = section -%]
+=head1 [% s.key %] Methods
+
+[% FOREACH m = s.value -%]
+=head2 [% m %][% IF d.isAsync eq 'true' %] (A)[% END %]
+
+[% d = command.$m -%]
+[% d.description %]
+
+User Level: [% d.level %] (FIXME: this needs to be improved)
+
+=head3 Request
+[% IF d.request.exists( 'required' ) %]
+=head4 Required Parameters
+
+=over
+
+[% FOREACH p = d.request.required -%]
+=item [% p.key %]
+
+[% p.value %]
+
+[% END %][% COMMENT end FOREACH p = d.request.required %][% END -%]
+=back
+[% END %][% COMMENT end IF d.request.exists %][% END -%]
+[% IF d.request.exists( 'optional' ) %]
+=head4 Optional Parameters
+
+=over
+
+[% FOREACH p = d.request.optional -%]
+=item [% p.key %]
+
+[% p.value %]
+
+[% END %][% COMMENT end FOREACH p = d.request.optional %][% END -%]
+=back
+[% END %][% COMMENT end IF d.request.exists %][% END -%]
+
+=head3 Response
+
+=over
+
+[% FOREACH p = d.response -%]
+=item [% p.key %]
+
+[% p.value %]
+
+[% END %][% COMMENT end FOREACH p = d.response %][% END -%]
+=back
+
+[% END %][% END -%]
+=cut
