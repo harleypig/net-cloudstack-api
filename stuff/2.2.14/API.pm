@@ -6196,7 +6196,7 @@ Sub::Exporter::setup_exporter( $config );
 
 # handle either a list of elements or a hashref
 
-sub new { bless ref $_[0] || $_[0] }
+sub new { bless {}, ref $_[0] || $_[0] }
 
 our $AUTOLOAD;
 
