@@ -227,3 +227,27 @@ open my $PM, '>', './API.pm'
   or die "Unable to open API.pm: $!\n";
 
 print $PM $pm;
+
+mkdir 't' if ! -e 't';
+
+for my $section ( keys %section ) {
+
+  my $method;
+  $method->{ $_ } = $command->{ $_ }
+    for @{ $section{ $section } };
+
+  my $swap = {
+    section     => $section,
+    method_dump => ( dump $method ),
+ };
+
+  open my $T, '>', "./t/200-$section.t"
+    or die "Unable to open ./t/200-$section.t: $!\n";
+
+  # Generate the test file
+  $template->process( '200_section-test.t.tt', $swap, \my $t )
+    or die "Unable to process: ", $template->error;
+
+  print $T $t;
+
+}

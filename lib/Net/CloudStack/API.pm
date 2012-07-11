@@ -6202,7 +6202,7 @@ our $AUTOLOAD;
 
 sub AUTOLOAD {
 
-  my $self = shift;
+  my $self = $_[0];
 
   ( my $method = $AUTOLOAD ) =~ s/^.*:://;
 
@@ -6223,11 +6223,12 @@ sub DESTROY {}
 
 sub _generate_method {
 
-  my $cmd = $_[1]; # We don't need the first parm.
+  my ( undef, $cmd ) = @_;
 
   croak "Unknown method: $cmd"
     unless exists $command->{ $cmd };
 
+  # FIXME: allow caller to pass in their own validation structures.
   # FIXME: more robust handling of at least the obvious data types.
   my %validate;
 
@@ -6240,72 +6241,60 @@ sub _generate_method {
 
   return sub {
 
-    my $self = shift
+    my $self = '';
+    $self = shift
       if blessed $_[0];
 
     $validate{ params } = \@_;
-    my %arg = validate_with( %validate );
+
+    my %arg;
+    %arg = validate_with( %validate )
+      if keys %{ $validate{ spec } };
 
     my @proc = $cmd;
 
     ( push @proc, join '&', map { "$_=$arg{$_}" } keys %arg )
       if keys %arg;
 
+    my $api = blessed $self ? $self->api : api();
 
-    if ( blessed $self ) {
+    $api->proc( @proc );
 
-      return $self->api->proc( @proc )->response;
+    return $api->send_request =~ /^yes$/i ? $api->response : $api->url;
 
-    } else {
-
-      return api()->proc( @proc )->response;
-
-    }
   };
 }
 
 { # Hide api stuff
 
-  # Functional interface just returns an instance of an Net::CloudStack object.
-  # OO interface creates an instance if one does not exist in the current instance of this package.
-
   my $api;
 
   sub api {
 
-    my ( $self, $args, $work );
+    if ( ! @_ || ( @_ == 1 && blessed $_[0] eq __PACKAGE__ ) ) {
 
-    if ( @_ && blessed $_[0] ) { # OO interface
+      croak "api not setup correctly"
+        unless defined $api && blessed $api eq 'Net::CloudStack';
 
-      ( $self, $args ) = @_;
-
-      return $self->{ api } = Net::CloudStack->new( $args )
-        if ! exists $self->{ api };
-
-      croak "unexpected api condition (oo)"
-        if ! blessed $self->{ api } || blessed $self->{ api } ne 'Net::CloudStack';
-
-      $work = $self->{ api };
-
-    } else { # Functional interface
-
-      $args = shift;
-
-      return $api = Net::CloudStack->new( $args )
-        if ! blessed $api;
-
-      croak "unexpected api condition (functional)"
-        if blessed $api ne 'Net::CloudStack';
-
-      $work = $api;
+      return $api;
 
     }
 
-    croak "args must be a hashref"
-      unless ref $args eq 'HASH';
+    my $args = ( $_[0] eq __PACKAGE__ || blessed $_[0] eq __PACKAGE__ ) ? $_[1] : $_[0];
 
-    $work->$_( $args->{ $_ } )
+    croak 'args must be a hashref'
+      if ref $args && ref $args ne 'HASH';
+
+    $api = Net::CloudStack->new( $args )
+      if ! defined $api || blessed $api ne 'Net::CloudStack';
+
+    return $api
+      unless ref $args;
+
+    $api->$_( $args->{ $_ } )
       for keys %$args;
+
+    return $api;
 
   }
 } # End hiding api stuff
