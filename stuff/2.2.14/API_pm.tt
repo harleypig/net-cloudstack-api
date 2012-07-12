@@ -1,6 +1,7 @@
 package Net::CloudStack::API;
 
 # ABSTRACT: Basic request and response handling for calls to a CloudStack service.
+# VERSION
 
 use strict;
 use warnings;

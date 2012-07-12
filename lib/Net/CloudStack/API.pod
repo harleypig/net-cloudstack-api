@@ -8,6 +8,21 @@ This module handles parameter checking for the various calls available from a cl
 
 Probably should include some explanatory text here about how this file is generated.
 
+=head1 SYNOPSIS
+
+  use Net::CloudStack::API;
+  my $cs = Net::CloudStack::API->new;
+  $cs->api( 'see Net::CloudStack docs for setup details' );
+  print $cs->listVolumes;
+
+  use Net::CloudStack::API 'listVolume';
+  Net::CloudStack::API::api( 'see Net::CloudStack docs for setup details' );
+  print listVolume();
+
+  use Net::CloudStack::API ':Volume';
+  Net::CloudStack::API::api( 'see Net::CloudStack docs for setup details' );
+  print listVolume();
+
 =head1 METHODS
 
 Something about how these are the methods available.
