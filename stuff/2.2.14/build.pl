@@ -1,7 +1,5 @@
 #!/usr/bin/perl
 ## no critic qw( Modules::ProhibitExcessMainComplexity )
-
-## no critic qw( ValuesAndExpressions::ProhibitAccessOfPrivateData )
 ## no critic qw( ValuesAndExpressions::ProhibitAccessOfPrivateData )
 ## no critic qw( References::ProhibitDoubleSigils Variables::ProhibitPackageVars )
 
@@ -19,7 +17,7 @@ use constant LINE_WIDTH => 78;
 
 if ( ! -e 't' ) {
 
-  mkdir 't' or croak "Unable to 'mkdir t': $!";
+  croak "Unable to 'mkdir t': $!" unless mkdir 't';
 
 }
 
@@ -33,8 +31,8 @@ $command = $command->{ command };
 
 my @lines = do {
 
-  open my $FH, '<', './commands.properties'
-      or croak "Unable to open commands.properties: $!";
+  croak "Unable to open commands.properties: $!"
+      unless open my $FH, '<', './commands.properties';
 
   <$FH>;
 
@@ -42,8 +40,8 @@ my @lines = do {
 
 push @lines, do {
 
-  open my $FH, '<', './commands-ext.properties'
-      or croak "Unable to open commands-ext.properties: $!";
+  croak "Unable to open commands-ext.properties: $!"
+    unless open my $FH, '<', './commands-ext.properties';
 
   <$FH>;
 
@@ -59,8 +57,7 @@ my ( %section, %parm );
 
 for my $line ( @lines ) {
 
-  if ( $line =~ /^\s*$/ )
-  { ## no critic qw( ControlStructures::ProhibitCascadingIfElse )
+  if ( $line =~ /^\s*$/ ) { ## no critic qw( ControlStructures::ProhibitCascadingIfElse )
 
     $section = q{-};
     next;
@@ -107,7 +104,7 @@ for my $line ( @lines ) {
         my $required
             = lc( $work->{ $parm }{ required } ) eq 'true'  ? 'required'
             : lc( $work->{ $parm }{ required } ) eq 'false' ? 'optional'
-            :   $work->{ $parm }{ required };
+            :                                                 $work->{ $parm }{ required };
 
         my $description
             = exists $work->{ $parm }{ description }
@@ -117,7 +114,8 @@ for my $line ( @lines ) {
         $description =~ s/^\s*(.*?)\s*$/$1/;
 
         $request->{ $required }{ $parm } = $description;
-        $parm{ $parm }->{ $description }++;
+        #$parm{ $parm }->{ $description }++;
+        ++$parm{ $parm }{ $description };
 
       } ## end for my $parm ( keys...)
 
@@ -133,7 +131,8 @@ for my $line ( @lines ) {
         $description =~ s/^\s*(.*?)\s*$/$1/;
 
         $response->{ $parm } = $description;
-        $parm{ $parm }->{ $description }++;
+        #$parm{ $parm }->{ $description }++;
+        ++$parm{ $parm }{ $description };
 
       }
 
@@ -233,11 +232,11 @@ my $api_swap = {
 };
 
 # Generate the pm file
-$template->process( 'API_pm.tt', $api_swap, \my $pm )
-    or croak 'Unable to process: ', $template->error;
+croak( 'Unable to process: ', $template->error )
+  unless $template->process( 'API_pm.tt', $api_swap, \my $pm );
 
-open my $PM, '>', './API.pm'
-    or croak "Unable to open API.pm: $!";
+croak( "Unable to open API.pm: $!" )
+  unless open my $PM, '>', './API.pm';
 
 print $PM $pm;
 
@@ -248,12 +247,12 @@ for my $section ( keys %section ) {
 
   my $section_swap = { section => $section, method_dump => ( dump $method ), };
 
-  open my $T, '>', "./t/200-$section.t"
-      or die "Unable to open ./t/200-$section.t: $!\n";
+  croak "Unable to open ./t/200-$section.t: $!"
+    unless open my $T, '>', "./t/200-$section.t";
 
   # Generate the test file
-  $template->process( '200_section-test.t.tt', $section_swap, \my $t )
-      or croak 'Unable to process: ', $template->error;
+  croak( 'Unable to process: ', $template->error )
+      unless $template->process( '200_section-test.t.tt', $section_swap, \my $t );
 
   print $T $t;
 
