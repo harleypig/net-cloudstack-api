@@ -2,6 +2,96 @@ package Net::CloudStack::API;
 
 # ABSTRACT: Basic request and response handling for calls to a CloudStack service.
 
+## no critic qw( ValuesAndExpressions::RestrictLongStrings ClassHierarchies::ProhibitAutoloading )
+## no critic qw( ValuesAndExpressions::ProhibitAccessOfPrivateData )
+
+die 'FIXME';
+=for :stopwords ENTER YOUR STOPWORDS HERE
+
+=head1 DESCRIPTION
+
+This module handles parameter checking for the various calls available from a cloudstack service.
+
+Probably should include some explanatory text here about how this file is generated.
+
+=head1 SYNOPSIS
+
+  use Net::CloudStack::API;
+  my $cs = Net::CloudStack::API->new;
+  $cs->api( 'see Net::CloudStack docs for setup details' );
+  print $cs->listVolumes;
+
+  use Net::CloudStack::API 'listVolumes';
+  Net::CloudStack::API::api( 'see Net::CloudStack docs for setup details' );
+  print listVolume();
+
+  use Net::CloudStack::API ':Volume';
+  Net::CloudStack::API::api( 'see Net::CloudStack docs for setup details' );
+  print listVolumes();
+
+=head1 METHODS
+
+Something about how these are the methods available.
+
+(A) indicates the method is asynchronous.
+
+Include text and reference here for async calls from docs.
+
+[% FOREACH s = section -%]
+=head1 [% s.key %] Methods
+
+[% FOREACH m = s.value -%]
+=head2 [% m %][% IF d.isAsync eq 'true' %] (A)[% END %]
+
+[% d = command.$m -%]
+[% d.description %]
+
+User Level: [% d.level %] (FIXME: this needs to be improved)
+
+=head3 Request
+[% IF d.request.exists( 'required' ) %]
+=head4 Required Parameters
+
+=over
+
+[% FOREACH p = d.request.required -%]
+=item [% p.key %]
+
+[% p.value %]
+
+[% END %][% COMMENT end FOREACH p = d.request.required %][% END -%]
+=back
+[% END %][% COMMENT end IF d.request.exists %][% END -%]
+[% IF d.request.exists( 'optional' ) %]
+=head4 Optional Parameters
+
+=over
+
+[% FOREACH p = d.request.optional -%]
+=item [% p.key %]
+
+[% p.value %]
+
+[% END %][% COMMENT end FOREACH p = d.request.optional %][% END -%]
+=back
+[% END %][% COMMENT end IF d.request.exists %][% END -%]
+
+=head3 Response
+
+=over
+
+[% FOREACH p = d.response -%]
+=item [% p.key %]
+
+[% p.value %]
+
+[% END %][% COMMENT end FOREACH p = d.response %][% END -%]
+=back
+
+[% END %][% END -%]
+=cut
+
+use 5.006;
 use strict;
 use warnings;
 use namespace::autoclean;
@@ -14,49 +104,49 @@ use Params::Validate ':all';
 use Scalar::Util 'blessed';
 use Sub::Exporter;
 
-my @exports;
-
 { # Begin general hiding
 
 ##############################################################################
-# Base structure
+  # Base structure
 
 my $command = [% cmd_dump %];
 
 ##############################################################################
-# Setup exports
+  # Setup exports
 
-my ( $exports, $groups, @all );
+  my ( $exports, $groups, @all );
 
-for my $cmd ( keys %$command ) {
+  for my $cmd ( keys %$command ) { ## no critic qw( References::ProhibitDoubleSigils )
 
-  $exports->{ $cmd } = \&_generate_method;
-  push @{ $groups->{ $command->{ $cmd }{ section } } }, $cmd;
-  push @all, $cmd;
+    $exports->{ $cmd } = \&_generate_method;
+    push @{ $groups->{ $command->{ $cmd }{ section } } }, $cmd;
+    push @all, $cmd;
 
-}
+  }
 
-$groups->{ all } = \@all;
+  $groups->{ all } = \@all;
 
-my $config = {
+  my $config = {
 
   exports => $exports,
   groups  => $groups,
 
-};
+  };
 
-Sub::Exporter::setup_exporter( $config );
+  Sub::Exporter::setup_exporter( $config );
 
 ##############################################################################
-# Setup OO interface
+  # Setup OO interface
 
-# handle either a list of elements or a hashref
+  # handle either a list of elements or a hashref
 
-sub new { bless {}, ref $_[0] || $_[0] }
+  sub new { ## no critic qw( Subroutines::RequireArgUnpacking )
+    return bless {}, ref $_[0] || $_[0];
+  }
 
-our $AUTOLOAD;
+  our $AUTOLOAD;
 
-sub AUTOLOAD {
+  sub AUTOLOAD { ## no critic qw( Subroutines::RequireArgUnpacking )
 
   my $self = $_[0];
 
@@ -65,19 +155,19 @@ sub AUTOLOAD {
   croak "unknown method $method"
     unless exists $command->{ $method };
 
-  no strict 'refs';
-  *$AUTOLOAD = $self->_generate_method( $method );
+    no strict 'refs'; ## no critic qw( TestingAndDebugging::ProhibitNoStrict )
+    *$AUTOLOAD = $self->_generate_method( $method ); ## no critic qw( References::ProhibitDoubleSigils )
 
-  goto &$AUTOLOAD;
+    goto &$AUTOLOAD; ## no critic qw( References::ProhibitDoubleSigils )
 
-}
+  }
 
-sub DESTROY {}
+  sub DESTROY { }
 
 ##############################################################################
-# Utility methods
+  # Utility methods
 
-sub _generate_method {
+  sub _generate_method {
 
   my ( undef, $cmd ) = @_;
 
@@ -89,11 +179,8 @@ sub _generate_method {
   my %validate;
 
   # Only build this part of the hash once ...
-  $validate{ spec }{ $_ } = { type => SCALAR }
-    for keys %{ $command->{ $cmd }{ request }{ required } };
-
-  $validate{ spec }{ $_ } = { type => SCALAR, optional => 1 }
-    for keys %{ $command->{ $cmd }{ request }{ optional } };
+    $validate{ spec }{ $_ } = { type => SCALAR } for keys %{ $command->{ $cmd }{ request }{ required } };
+    $validate{ spec }{ $_ } = { type => SCALAR, optional => 1 } for keys %{ $command->{ $cmd }{ request }{ optional } };
 
   return sub {
 
@@ -109,34 +196,40 @@ sub _generate_method {
 
     my @proc = $cmd;
 
-    ( push @proc, join '&', map { "$_=$arg{$_}" } keys %arg )
-      if keys %arg;
+      if ( keys %arg ) {
+
+        push @proc, join q{&}, map { "$_=$arg{$_}" } keys %arg;
+
+      }
 
     my $api = blessed $self ? $self->api : api();
 
     $api->proc( @proc );
 
-    return $api->send_request =~ /^yes$/i ? $api->response : $api->url;
+      return $api->send_request eq 'yes' ? $api->response : $api->url;
 
   };
-}
+  } ## end sub _generate_method
 
-{ # Hide api stuff
+  {  # Hide api stuff
 
   my $api;
 
-  sub api {
+    sub api { ## no critic qw( Subroutines::RequireArgUnpacking )
 
     if ( ! @_ || ( @_ == 1 && blessed $_[0] eq __PACKAGE__ ) ) {
 
-      croak "api not setup correctly"
+        croak 'api not setup correctly'
         unless defined $api && blessed $api eq 'Net::CloudStack';
 
       return $api;
 
     }
 
-    my $args = ( $_[0] eq __PACKAGE__ || blessed $_[0] eq __PACKAGE__ ) ? $_[1] : $_[0];
+      my $args
+          = ( $_[0] eq __PACKAGE__ || blessed $_[0] eq __PACKAGE__ )
+          ? $_[1]
+          : $_[0];
 
     croak 'args must be a hashref'
       if ref $args && ref $args ne 'HASH';
@@ -147,13 +240,12 @@ sub _generate_method {
     return $api
       unless ref $args;
 
-    $api->$_( $args->{ $_ } )
-      for keys %$args;
+      $api->$_( $args->{ $_ } ) for keys %$args; ## no critic qw( References::ProhibitDoubleSigils )
 
     return $api;
 
-  }
-} # End hiding api stuff
+    } ## end sub api
+  }  # End hiding api stuff
 
 } # End general hiding
 

@@ -1,20 +1,32 @@
 #!/usr/bin/perl
+## no critic qw( Modules::ProhibitExcessMainComplexity )
 
+## no critic qw( ValuesAndExpressions::ProhibitAccessOfPrivateData )
+## no critic qw( ValuesAndExpressions::ProhibitAccessOfPrivateData )
+## no critic qw( References::ProhibitDoubleSigils Variables::ProhibitPackageVars )
+
+use 5.006;
 use strict;
 use warnings;
 
+use Carp;
 use Data::Dump 'dump';
 use Template::Alloy;
 use Text::Wrap;
 use XML::Simple;
 
+use constant LINE_WIDTH => 78;
+
+if ( ! -e 't' ) {
+
+  mkdir 't' or croak "Unable to 'mkdir t': $!";
+
+}
+
 my $command = XMLin(
   './commands.xml',
   ForceArray => [qw( arg )],
-  GroupTags => {
-    request => 'arg',
-    response => 'arg',
-  },
+  GroupTags  => { request => 'arg', response => 'arg', },
 );
 
 $command = $command->{ command };
@@ -22,7 +34,7 @@ $command = $command->{ command };
 my @lines = do {
 
   open my $FH, '<', './commands.properties'
-    or die "Unable to open commands.properties: $!\n";
+      or croak "Unable to open commands.properties: $!";
 
   <$FH>;
 
@@ -31,7 +43,7 @@ my @lines = do {
 push @lines, do {
 
   open my $FH, '<', './commands-ext.properties'
-    or die "Unable to open commands-ext.properties: $!\n";
+      or croak "Unable to open commands-ext.properties: $!";
 
   <$FH>;
 
@@ -42,17 +54,18 @@ chomp @lines;
 # login and logout aren't represented in the above files, so let's fake it!
 push @lines, '', '# Session commands', 'login=;15', 'logout=;15';
 
-my $section = '-';
+my $section = q{-};
 my ( %section, %parm );
 
 for my $line ( @lines ) {
 
-  if ( $line =~ /^\s*$/ ) {
+  if ( $line =~ /^\s*$/ )
+  { ## no critic qw( ControlStructures::ProhibitCascadingIfElse )
 
-    $section = '-';
+    $section = q{-};
     next;
 
-  } elsif ( $section eq '-' && $line =~ /^#+\s*(.*?)\s+command.*$/ ) {
+  } elsif ( $section eq q{-} && $line =~ /^#+\s*(.*?)\s+command.*$/ ) {
 
     ( $section = $1 ) =~ s/(\w+)/\u\L$1/g;
 
@@ -71,7 +84,7 @@ for my $line ( @lines ) {
 
     next;
 
-  } elsif ( $section ne '-' && $line =~ /^([^#]+)=.*;(\d+)$/ ) {
+  } elsif ( $section ne q{-} && $line =~ /^([^#]+)=.*;(\d+)$/ ) {
 
     my ( $cmd, $level ) = ( $1, $2 );
 
@@ -80,7 +93,7 @@ for my $line ( @lines ) {
       $command->{ $cmd }{ description } =~ s/^\s*(.*?)\s*$/$1/;
 
       $command->{ $cmd }{ section } = $section;
-      $command->{ $cmd }{ level   } = $level;
+      $command->{ $cmd }{ level }   = $level;
 
       push @{ $section{ $section } }, $cmd;
 
@@ -91,28 +104,31 @@ for my $line ( @lines ) {
 
       for my $parm ( keys %$work ) {
 
-        my $required = lc( $work->{ $parm }{ required } ) eq 'true'  ? 'required'
-                     : lc( $work->{ $parm }{ required } ) eq 'false' ? 'optional'
-                     :     $work->{ $parm }{ required };
+        my $required
+            = lc( $work->{ $parm }{ required } ) eq 'true'  ? 'required'
+            : lc( $work->{ $parm }{ required } ) eq 'false' ? 'optional'
+            :   $work->{ $parm }{ required };
 
-        my $description = exists $work->{ $parm }{ description }
-                        ? $work->{ $parm }{ description }
-                        : 'no description';
+        my $description
+            = exists $work->{ $parm }{ description }
+            ? $work->{ $parm }{ description }
+            : 'no description';
 
         $description =~ s/^\s*(.*?)\s*$/$1/;
 
         $request->{ $required }{ $parm } = $description;
         $parm{ $parm }->{ $description }++;
 
-      }
+      } ## end for my $parm ( keys...)
 
       $work = $command->{ $cmd }{ response };
 
       for my $parm ( keys %$work ) {
 
-        my $description = exists $work->{ $parm }{ description }
-                        ? $work->{ $parm }{ description }
-                        : 'no description';
+        my $description
+            = exists $work->{ $parm }{ description }
+            ? $work->{ $parm }{ description }
+            : 'no description';
 
         $description =~ s/^\s*(.*?)\s*$/$1/;
 
@@ -121,7 +137,7 @@ for my $line ( @lines ) {
 
       }
 
-      $command->{ $cmd }{ request } = $request;
+      $command->{ $cmd }{ request }  = $request;
       $command->{ $cmd }{ response } = $response;
 
     } else {
@@ -141,7 +157,7 @@ for my $line ( @lines ) {
     warn "Unhandled situation for $line\n";
 
   }
-}
+} ## end for my $line ( @lines)
 
 if ( 0 ) {
 
@@ -154,6 +170,7 @@ if ( 0 ) {
     my @k = keys %{ $command->{ $c } };
     $check{ $_ }++ for @k;
 
+    ## no critic qw( Bangs::ProhibitVagueNames )
     my %tmp;
     $tmp{ $_ }++ for @expected;
     $tmp{ $_ }++ for @k;
@@ -169,12 +186,12 @@ if ( 0 ) {
   print "$_ = $check{ $_ }\n" for keys %check;
   print "$_\n" for sort keys %section;
 
-}
+} ## end if ( 0 )
 
-my $template = Template::Alloy->new( INCLUDE_PATH => [ '.' ] );
+my $template = Template::Alloy->new( INCLUDE_PATH => [q{.}] );
 
 # Build the exports array string.
-$Text::Wrap::columns = 78;
+$Text::Wrap::columns = LINE_WIDTH;
 my $exports = wrap( '  ', '  ', sort keys %$command );
 
 # Build the groups hash reference.
@@ -182,11 +199,11 @@ my @groups;
 
 for my $g ( sort keys %section ) {
 
-  ( my $g2 = $g ) =~ s/\W//g;
+  ( my $g2 = $g ) =~ s/\W//g; ## no critic qw( Bangs::ProhibitNumberedNames )
   my $commands = join ' ', sort @{ $section{ $g } };
   my $group = "  $g2 => [qw( $commands )],";
 
-  if ( length $group > 79 ) {
+  if ( length $group > LINE_WIDTH ) {
 
     $commands = wrap( '    ', '    ', $commands );
     $group = "  $g2 => [qw(\n\n$commands\n\n  )],";
@@ -199,9 +216,14 @@ for my $g ( sort keys %section ) {
 
 my $groups = join "\n\n", @groups;
 
-my $swap = {
+# Satisfy perlcritic: ValuesAndExpressions::ProhibitInterpolationOfLiterals
+my $cmd_dump = dump $command;
+$cmd_dump =~ s/'/\\'/g;
+$cmd_dump =~ s/"/'/g;
 
-  cmd_dump => ( dump $command ),
+my $api_swap = {
+
+  cmd_dump => $cmd_dump,
   command  => $command,
   exports  => $exports,
   groups   => $groups,
@@ -210,43 +232,28 @@ my $swap = {
 
 };
 
-# Generate the pod file
-$template->process( 'API_pod.tt', $swap, \my $pod )
-  or die "Unable to process pod: ", $template->error;
-
-open my $POD, '>', './API.pod'
-  or die "Unable to open API.pod: $!\n";
-
-print $POD $pod;
-
 # Generate the pm file
-$template->process( 'API_pm.tt', $swap, \my $pm )
-  or die "Unable to process: ", $template->error;
+$template->process( 'API_pm.tt', $api_swap, \my $pm )
+    or croak 'Unable to process: ', $template->error;
 
 open my $PM, '>', './API.pm'
-  or die "Unable to open API.pm: $!\n";
+    or croak "Unable to open API.pm: $!";
 
 print $PM $pm;
-
-mkdir 't' if ! -e 't';
 
 for my $section ( keys %section ) {
 
   my $method;
-  $method->{ $_ } = $command->{ $_ }
-    for @{ $section{ $section } };
+  $method->{ $_ } = $command->{ $_ } for @{ $section{ $section } };
 
-  my $swap = {
-    section     => $section,
-    method_dump => ( dump $method ),
- };
+  my $section_swap = { section => $section, method_dump => ( dump $method ), };
 
   open my $T, '>', "./t/200-$section.t"
-    or die "Unable to open ./t/200-$section.t: $!\n";
+      or die "Unable to open ./t/200-$section.t: $!\n";
 
   # Generate the test file
-  $template->process( '200_section-test.t.tt', $swap, \my $t )
-    or die "Unable to process: ", $template->error;
+  $template->process( '200_section-test.t.tt', $section_swap, \my $t )
+      or croak 'Unable to process: ', $template->error;
 
   print $T $t;
 
