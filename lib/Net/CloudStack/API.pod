@@ -1,7 +1,3 @@
-package Net::CloudStack::API;
-
-# ABSTRACT: Basic request and response handling for calls to a CloudStack service.
-
 =head1 DESCRIPTION
 
 This module handles parameter checking for the various calls available from a cloudstack service.
