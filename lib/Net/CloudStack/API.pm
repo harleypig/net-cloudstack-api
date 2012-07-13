@@ -11,7 +11,7 @@ use strict;
 use warnings;
 use namespace::autoclean;
 
-our $VERSION = '0.01'; # VERSION
+our $VERSION = '0.02'; # VERSION
 
 use Carp;
 use Net::CloudStack;
@@ -6567,7 +6567,7 @@ Net::CloudStack::API - Basic request and response handling for calls to a CloudS
 
 =head1 VERSION
 
-  This document describes v0.01 of Net::CloudStack::API - released July 13, 2012 as part of Net-CloudStack-API.
+  This document describes v0.02 of Net::CloudStack::API - released July 13, 2012 as part of Net-CloudStack-API.
 
 =head1 SYNOPSIS
 
