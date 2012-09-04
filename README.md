@@ -7,7 +7,7 @@ There does not appear to be a WSDL or other schema for the available commands. I
 https://github.com/cloudstack (or https://git-wip-us.apache.org/repos/asf/incubator-cloudstack-dev, which appears to be a copy)
 either. Tsk. Get on the ball Citrix!
 
-However, I downloaded the rpms found at http://cloudstack.org/download.html--specifically,
+However, I downloaded the rpms found at http://cloudstack.org/download.html --specifically,
 /home/harleypig/Downloads/CloudStack-2.2.14-1-rhel6.2.tar.gz--and found the following files:
 
  oss/cloud-cli/etc/cloud/cli/commands.xml
