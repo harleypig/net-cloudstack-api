@@ -1,0 +1,50 @@
+## no critic qw( ErrorHandling::RequireCheckingReturnValueOfEval )
+## no critic qw( Lax::RequireExplicitPackage::ExceptForPragmata )
+## no critic qw( Modules::RequireExplicitPackage )
+## no critic qw( OTRS::ProhibitRequire )
+## no critic qw( TestingAndDebugging::RequireUseStrict  )
+
+use Test::Most;
+
+# Force author testing for this test.
+local $ENV{AUTHOR_TESTING} = 1;
+
+eval { require Test::Kwalitee };
+
+if ( $@ ) {
+  my $msg = 'Test::Kwalitee required to test kwalitee.';
+  plan( skip_all => $msg );
+}
+
+my @tests = qw(
+
+  has_buildtool has_license_in_source_file has_manifest has_meta_yml
+  has_readme has_tests meta_json_conforms_to_known_spec meta_json_is_parsable
+  meta_yml_conforms_to_known_spec meta_yml_is_parsable no_broken_auto_install
+  no_broken_module_install no_symlinks use_strict
+
+);
+
+my @todo_tests = qw(
+
+  has_abstract_in_pod has_changelog has_humanreadable_license
+
+);
+
+plan tests => scalar @tests + scalar @todo_tests;
+
+# When @todo_tests is empty, fail so we can update this file.
+## no critic qw( ValuesAndExpressions::RequireInterpolationOfMetachars )
+ok( scalar @todo_tests > 0, '@todo_tests is not empty' );
+
+Test::Kwalitee::kwalitee_ok( $_ ) for @tests;
+
+TODO: {
+
+  local $TODO = 'Need to fix these as time permits.';
+
+  Test::Kwalitee::kwalitee_ok( $_ ) for @todo_tests;
+
+}
+
+done_testing;
