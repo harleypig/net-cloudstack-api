@@ -2,6 +2,7 @@
 
 use strict;
 use warnings;
+use version ();
 
 use Data::Dumper;
 use File::Find::Rule;
@@ -20,8 +21,13 @@ my $basedir = shift
 my $savefile = shift
   or die "Must provide file to save xml to.\n";
 
-my $version = shift
-  or die "Must provide version number.\n";
+my $api_version = shift
+  or die "Must provide api version number.\n";
+
+$api_version = version->parse( $api_version );
+
+die "Invalid version format.\n"
+  unless $api_version->is_qv;
 
 my $workdir      = "${basedir}/tools/apidoc/target";
 my $commands_xml = "${workdir}/commands.xml";
@@ -101,6 +107,10 @@ sub check_user_types {
       my $user_data = XMLin( $command_file );
       $user_data    = $user_data->{ command };
 
+      warn "\t-> Checking $command->{ name } against $command_file.";
+
+      handle_known_exceptions( $command, $user_data );
+
       compare_hashes( $command, $user_data );
 
       push @user_types, $ud;
@@ -113,6 +123,32 @@ sub check_user_types {
 
   $command->{ user_types } = [ @user_types ];
 
+}
+
+sub handle_known_exceptions {
+
+  my ( $command, $user_data ) = @_;
+
+  my $v430 = version->declare( '4.3.0' );
+  my $v451 = version->declare( '4.5.1' );
+
+  if ( $api_version >= $v430 && $api_version <= $v451 && $command->{ name } eq 'listEgressFirewallRules' ) {
+
+    my $NOTE = q#For whatever reason listEgressFirewallRules -> request -> networkid is duplicated in the xml and XMLin is overwriting the entry with the last one encountered. Since they're in different freaking order from the commands.xml and the individual doc files, we'll just merge the two.#;
+
+    my $networkid1 = delete $command->{ request }{ arg }{ networkid };
+    my $networkid2 = delete $user_data->{ request }{ arg }{ networkid };
+
+    $networkid1->{ description } .= " OR $networkid1->{ description } -- NOTE: $NOTE"
+      unless $networkid1->{ description } =~ /NOTE:/;
+
+    $networkid1->{ sinceVersion } = $user_data->{ sinceVersion }
+      unless exists $networkid1->{ sinceVersion };
+
+    $command->{ request }{ arg }{ networkid } = $networkid1;
+    $user_data->{ request }{ arg }{ networkid } = $networkid1;
+
+  }
 }
 
 sub check_arg {
@@ -240,7 +276,7 @@ for my $command ( @commands ) {
 
 my $new_commands = {
   commands => $commands,
-  api_version => $version,
+  api_version => $api_version,
 };
 
 print "Saving commands to $savefile.\n";
