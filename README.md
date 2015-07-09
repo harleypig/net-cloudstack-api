@@ -10,13 +10,9 @@
 
 * Make sure your paths match the following structure.
 
-    $HOME
-
-      projects
-
-          cloudstack
-
-              cloudstack.orig (original cloudstack git clone)
-
-          net-cloudstack-api
+        $HOME
+          projects
+              cloudstack
+                  cloudstack.orig (original cloudstack git clone)
+              net-cloudstack-api
 
