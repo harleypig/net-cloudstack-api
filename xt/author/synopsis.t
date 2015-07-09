@@ -4,14 +4,19 @@
 ## no critic qw( OTRS::ProhibitRequire )
 ## no critic qw( TestingAndDebugging::RequireUseStrict  )
 
-use Test::Most;
+BEGIN {
+
+  use Test::Most
+
+  plan skip_all => 'these tests are for testing by the author'
+    unless $ENV{AUTHOR_TESTING};
+
+}
 
 eval { require Test::Synopsis };
 
-if ( $@ ) {
-  my $msg = 'Test::Synopsis required to check spelling.';
-  plan skip_all => $msg;
-}
+plan skip_all => 'Test::Synopsis required for these tests'
+  if $@;
 
 TODO: {
   local $TODO = 'Add synopsis to documentation.';

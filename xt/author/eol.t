@@ -4,15 +4,21 @@
 ## no critic qw( OTRS::ProhibitRequire )
 ## no critic qw( TestingAndDebugging::RequireUseStrict  )
 
-use Test::Most;
-use File::Find::Rule;
+BEGIN {
+
+  use Test::Most
+
+  plan skip_all => 'these tests are for testing by the author'
+    unless $ENV{AUTHOR_TESTING};
+
+}
 
 eval { require Test::EOL };
 
-if ( $@ ) {
-  my $msg = 'Test::EOL required to criticize code.';
-  plan skip_all => $msg;
-}
+plan skip_all => 'Test::EOL required for these tests'
+  if $@;
+
+use File::Find::Rule;
 
 my @binfiles = File::Find::Rule->file()->in( qw( bin ) );
 my @files = File::Find::Rule->file()->name( '[^\.]+', '*.p[ml]', '*.t' )->in( qw( lib t ) );

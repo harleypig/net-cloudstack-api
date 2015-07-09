@@ -4,18 +4,23 @@
 ## no critic qw( OTRS::ProhibitRequire )
 ## no critic qw( TestingAndDebugging::RequireUseStrict  )
 
-use Test::Most;
+BEGIN {
+
+  use Test::Most
+
+  plan skip_all => 'these tests are for testing by the author'
+    unless $ENV{AUTHOR_TESTING};
+
+}
 
 eval { require Test::Pod::Coverage };
 
-if ( $@ ) {
-  my $msg = 'Test::Pod::Coverage required to test pod coverage.';
-  plan skip_all => $msg;
-}
+plan skip_all => 'Test::Pod::Coverage required for these tests'
+  if $@;
 
 Test::Pod::Coverage->import;
 
-my @packages = qw( Brokkr Brokkr::Options Brokkr::Server );
+my @packages = qw( Net::CloudStack::API );
 
 plan tests => scalar @packages;
 

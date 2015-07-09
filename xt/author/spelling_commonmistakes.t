@@ -4,14 +4,19 @@
 ## no critic qw( OTRS::ProhibitRequire )
 ## no critic qw( TestingAndDebugging::RequireUseStrict  )
 
-use Test::Most;
+BEGIN {
 
-eval { require Test::Spelling };
+  use Test::Most
 
-if ( $@ ) {
-  my $msg = 'Test::Spelling required to check spelling.';
-  plan skip_all => $msg;
+  plan skip_all => 'these tests are for testing by the author'
+    unless $ENV{AUTHOR_TESTING};
+
 }
 
+eval { require Test::Pod::Spelling::CommonMistakes };
+
+plan skip_all => 'Test::Pod::Spelling::CommonMistakes required for these tests'
+  if $@;
+
 # XXX: Change this to explicitly checking each individual file.
-Test::Spelling::all_pod_files_spelling_ok();
+Test::Pod::Spelling::CommonMistakes::all_pod_files_ok();

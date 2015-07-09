@@ -4,14 +4,19 @@
 ## no critic qw( OTRS::ProhibitRequire )
 ## no critic qw( TestingAndDebugging::RequireUseStrict  )
 
-use Test::Most;
+BEGIN {
+
+  use Test::Most
+
+  plan skip_all => 'these tests are for testing by the author'
+    unless $ENV{AUTHOR_TESTING};
+
+}
 
 eval { require Test::Pod };
 
-if ( $@ ) {
-  my $msg = 'Test::Pod required to criticize code.';
-  plan skip_all => $msg;
-}
+plan skip_all => 'Test::Pod required for these tests'
+  if $@;
 
 # XXX: Change this to explicitly checking each individual file.
 Test::Pod::all_pod_files_ok();
