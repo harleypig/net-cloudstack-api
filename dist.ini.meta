@@ -281,7 +281,7 @@ allow_dirty = README
 allow_dirty = .travis.yml
 
 [TestRelease]
-[Travis::TestRelease]
+;[Travis::TestRelease]
 [ConfirmRelease]
 [BlockRelease]
 
