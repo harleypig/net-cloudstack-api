@@ -1,0 +1,80 @@
+build_package: mkdir -p /home/harleypig/projects/net-cloudstack-api/logs
+build_package: mkdir -p /home/harleypig/projects/net-cloudstack-api/processed
+build_package: cd /home/harleypig/projects/cloudstack/cloudstack.orig
+build_package: /usr/bin/git pull
+Current branch master is up to date.
+build_package: cd /home/harleypig/projects/cloudstack/cloudstack.orig/deps
+build_package: curl -LSsO -C - http://zooi.widodh.nl/cloudstack/build-dep/cloud-iControl.jar
+build_package: curl -LSsO -C - http://zooi.widodh.nl/cloudstack/build-dep/cloud-manageontap.jar
+build_package: curl -LSsO -C - http://zooi.widodh.nl/cloudstack/build-dep/vmware-vim.jar
+build_package: curl -LSsO -C - http://zooi.widodh.nl/cloudstack/build-dep/vmware-vim25.jar
+build_package: curl -LSsO -C - http://zooi.widodh.nl/cloudstack/build-dep/vmware-apputils.jar
+build_package: curl -LSsO -C - http://zooi.widodh.nl/cloudstack/build-dep/cloud-netscaler-jars.zip
+build_package: ln -f cloud-manageontap.jar manageontap.jar
+build_package: ln -f vmware-apputils.jar apputils.jar
+build_package: ln -f vmware-vim.jar vim.jar
+build_package: ln -f vmware-vim25.jar vim25_51.jar
+build_package: unzip -fo cloud-netscaler-jars.zip
+Archive:  cloud-netscaler-jars.zip
+build_package: ./install-non-oss.sh
+[INFO] Scanning for projects...
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building Maven Stub Project (No POM) 1
+[INFO] ------------------------------------------------------------------------
+[INFO] 
+[INFO] --- maven-install-plugin:2.3.1:install-file (default-cli) @ standalone-pom ---
+[INFO] Installing /home/harleypig/projects/cloudstack/cloudstack.orig/deps/cloud-iControl.jar to /home/harleypig/.m2/repository/com/cloud/com/f5/icontrol/1.0/icontrol-1.0.jar
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 0.698s
+[INFO] Finished at: Thu Jul 09 07:20:41 UTC 2015
+[INFO] Final Memory: 5M/14M
+[INFO] ------------------------------------------------------------------------
+[INFO] Scanning for projects...
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building Maven Stub Project (No POM) 1
+[INFO] ------------------------------------------------------------------------
+[INFO] 
+[INFO] --- maven-install-plugin:2.3.1:install-file (default-cli) @ standalone-pom ---
+[INFO] Installing /home/harleypig/projects/cloudstack/cloudstack.orig/deps/cloud-netscaler-sdx.jar to /home/harleypig/.m2/repository/com/cloud/com/citrix/netscaler-sdx/1.0/netscaler-sdx-1.0.jar
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 0.725s
+[INFO] Finished at: Thu Jul 09 07:20:43 UTC 2015
+[INFO] Final Memory: 4M/14M
+[INFO] ------------------------------------------------------------------------
+[INFO] Scanning for projects...
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building Maven Stub Project (No POM) 1
+[INFO] ------------------------------------------------------------------------
+[INFO] 
+[INFO] --- maven-install-plugin:2.3.1:install-file (default-cli) @ standalone-pom ---
+[INFO] Installing /home/harleypig/projects/cloudstack/cloudstack.orig/deps/manageontap.jar to /home/harleypig/.m2/repository/com/cloud/com/netapp/manageontap/4.0/manageontap-4.0.jar
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 0.717s
+[INFO] Finished at: Thu Jul 09 07:20:45 UTC 2015
+[INFO] Final Memory: 4M/14M
+[INFO] ------------------------------------------------------------------------
+[INFO] Scanning for projects...
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building Maven Stub Project (No POM) 1
+[INFO] ------------------------------------------------------------------------
+[INFO] 
+[INFO] --- maven-install-plugin:2.3.1:install-file (default-cli) @ standalone-pom ---
+[INFO] Installing /home/harleypig/projects/cloudstack/cloudstack.orig/deps/vim25_51.jar to /home/harleypig/.m2/repository/com/cloud/com/vmware/vmware-vim25/5.1/vmware-vim25-5.1.jar
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 0.655s
+[INFO] Finished at: Thu Jul 09 07:20:47 UTC 2015
+[INFO] Final Memory: 4M/14M
+[INFO] ------------------------------------------------------------------------
+build_package: cd /home/harleypig/projects/net-cloudstack-api
