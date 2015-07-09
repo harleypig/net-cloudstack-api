@@ -1,0 +1,255 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use Data::Dumper;
+use File::Find::Rule;
+use Hash::Merge qw( merge );
+use Path::Tiny;
+use Test::Deep::NoTest qw( cmp_details deep_diag );
+use XML::LibXML::Simple;
+use YAML::XS qw( DumpFile LoadFile );
+
+$Data::Dumper::Sortkeys++;
+$Data::Dumper::Varname = 'parm_name';
+
+my $basedir = shift
+  or die "Must provide base directory to work from.\n";
+
+my $savefile = shift
+  or die "Must provide file to save xml to.\n";
+
+my $version = shift
+  or die "Must provide version number.\n";
+
+my $workdir      = "${basedir}/tools/apidoc/target";
+my $commands_xml = "${workdir}/commands.xml";
+
+my ( %known_parm, %parm_name );
+
+##############################################################################
+
+sub get_apiconstants {
+
+  my $apiconstants_file = path( "${basedir}/api/src/org/apache/cloudstack/api/ApiConstants.java" );
+
+  for my $line ( $apiconstants_file->lines ) {
+
+    next unless $line =~ /^\s+public static final String (\w*?) = "(.*?)";/;
+    $known_parm{ $2 } = $1;
+
+  }
+
+  my $apiconstants2_file = path( "${basedir}/awsapi/src/com/cloud/stack/models/ApiConstants.java" );
+
+  for my $line ( $apiconstants2_file->lines ) {
+
+    next unless $line =~ /^\s+public static final String (\w*?) = "(.*?)";/;
+
+    my ( $parm, $constant ) = ( $2, $1 );
+
+    #die "!!! $parm is duplicated but does not match ($known_parm{ $parm } ne $constant)"
+    #  if exists $known_parm{ $parm } && $known_parm{ $parm } ne $constant;
+
+    $known_parm{ $parm } = $constant
+      unless exists $known_parm{ $parm };
+
+  }
+}
+
+sub compare_hashes {
+
+  my ( $hash1, $hash2 ) = @_;
+
+  my ( $ok, $stack ) = cmp_details( $hash1, $hash2 );
+
+  if ( ! $ok ) {
+
+    print deep_diag( $stack );
+    die "!!! hash1 does not match hash2!\n";
+
+  }
+}
+
+sub check_user_types {
+
+  my ( $command ) = @_;
+
+  die "must pass hash ref to check_user_types"
+    unless ref $command eq 'HASH';
+
+  die "no name supplied"
+    unless exists $command->{ name };
+
+  my $command_name = $command->{ name };
+
+  my %user_dir = (
+    root   => "${workdir}/xmldoc/root_admin",
+    domain => "${workdir}/xmldoc/domain_admin",
+    user   => "${workdir}/xmldoc/regular_user",
+  );
+
+  my @user_types;
+
+  for my $ud ( sort keys %user_dir ) {
+
+    my $command_file = "$user_dir{$ud}/${command_name}.xml";
+
+    if ( -f $command_file ) {
+
+      my $user_data = XMLin( $command_file );
+      $user_data    = $user_data->{ command };
+
+      compare_hashes( $command, $user_data );
+
+      push @user_types, $ud;
+
+    }
+  }
+
+  die "!!! user_types is empty"
+    unless scalar @user_types;
+
+  $command->{ user_types } = [ @user_types ];
+
+}
+
+sub check_arg {
+
+  # request or response hash
+  my ( $arg_hash, $r ) = @_;
+
+  my $arg = delete $arg_hash->{ arg };
+
+  die "!!! unexpected keys in arg_hash"
+    if %$arg_hash;
+
+  my $different_arg = join ',', sort keys %$arg;
+
+  if ( $different_arg =~ /^description,name(?:,required)?$/ ) {
+
+    my $a = { $arg->{ name } => { description => $arg->{ description } } };
+
+    $a->{ $arg->{ name } }{ required } = $arg->{ required }
+      if exists $arg->{ required };
+
+    return { parms => $a };
+
+  }
+
+  my @keys         = sort keys %$arg;
+  my $total_keys   = scalar @keys;
+  my $key_width    = length $total_keys;
+  my $key_count    = 1;
+  my $indent_level = "\t\t";
+
+  for my $key ( @keys ) {
+
+    warn sprintf "$indent_level(%${key_width}d/$total_keys) $key\n", $key_count++;
+
+    if ( $key =~ /\(\*\)/ ) {
+
+      my $keydata = delete $arg->{ $key };
+
+      my $subarg = delete $keydata->{ arguments }
+        or die "!!! $key has non-alpha characters, but no arguments key\n";
+
+      $subarg = check_arg( $subarg, $r );
+
+      ( my $modified = $key ) =~ s/\(\*\)//;
+
+      $arg->{ $modified } = merge( $keydata, $subarg );
+
+      $parm_name{ $r }{ $modified }++
+        unless exists $known_parm{ $modified };
+
+    } elsif ( $key =~ /\W/ ) {
+
+      die "!!! $key has unhandled non-alpha characters\n"
+
+    } else {
+
+      $parm_name{ $r }{ $key }++
+        unless exists $known_parm{ $key };
+
+    }
+  }
+
+  return { parms => $arg };
+
+}
+
+##############################################################################
+
+get_apiconstants();
+
+die "Cannot find commands.xml"
+  unless -f $commands_xml;
+
+my $commands = XMLin( $commands_xml );
+$commands = $commands->{ command };
+
+my @commands = sort keys %$commands;
+my $total = scalar @commands;
+my $width = length $total;
+my $count = 1;
+
+my $no_sinceversion = 0;
+
+for my $command ( @commands ) {
+
+  warn sprintf "(%${width}d/$total) $command\n", $count++;
+
+  $DB::single = 1 if $command eq 'listEgressFirewallRules';
+
+  #warn "\t-> $command does not have since_version\n"
+  $no_sinceversion++
+    unless exists $commands->{ $command }{ sinceVersion };
+
+  $commands->{ $command }{ name } = $command;
+
+  check_user_types( $commands->{ $command } );
+
+  for my $r (qw( request response )) {
+
+    die "!!! $command does not have key named $r\n"
+      unless exists $commands->{ $command }{ $r };
+
+    if ( ! %{ $commands->{ $command }{ $r } } ) {
+
+      warn "\t-> $r is empty\n";
+      next;
+
+    }
+
+    warn "\t-> $r\n";
+
+    die "!!! $command $r has no arg key"
+      unless exists $commands->{ $command }{ $r }{ arg };
+
+    my $rkeys = join ',', keys %{ $commands->{ $command }{ $r } };
+
+    die "!!! $command $r has unexpected keys ($rkeys).\n"
+      unless $rkeys eq 'arg';
+
+    $commands->{ $command }{ $r } = check_arg( $commands->{ $command }{ $r }, $r );
+
+  }
+}
+
+my $new_commands = {
+  commands => $commands,
+  api_version => $version,
+};
+
+print "Saving commands to $savefile.\n";
+DumpFile( $savefile, $new_commands );
+my $test = LoadFile( $savefile );
+compare_hashes( $new_commands, $test );
+print "Saved file matches existing hash.\n";
+
+print "Unknown parms:\n";
+print Dumper \%parm_name;
+
+print "Done.\n";

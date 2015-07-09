@@ -1,0 +1,96 @@
+#!/usr/bin/bash
+
+# Clone cloudstack from https://git-wip-us.apache.org/repos/asf/cloudstack.git
+# Checkout the appropriate tag.
+# Build the documentation; command found at
+#   https://cwiki.apache.org/confluence/display/CLOUDSTACK/How+To+Generate+CloudStack+API+Documentation
+# Process the xml files found in tools/apidoc/target.
+
+#DEBUG='echo'
+
+TAGS="${TAGS} 4.1.0"
+TAGS="${TAGS} 4.1.1"
+TAGS="${TAGS} 4.2.0"
+TAGS="${TAGS} 4.2.1"
+TAGS="${TAGS} 4.3.0"
+TAGS="${TAGS} 4.3.1"
+TAGS="${TAGS} 4.3.2"
+TAGS="${TAGS} 4.4.0"
+TAGS="${TAGS} 4.4.1"
+TAGS="${TAGS} 4.4.2"
+TAGS="${TAGS} 4.4.3"
+TAGS="${TAGS} 4.4.4"
+TAGS="${TAGS} 4.5.1"
+
+NONOSS="${NONOSS} http://zooi.widodh.nl/cloudstack/build-dep/cloud-iControl.jar"
+NONOSS="${NONOSS} http://zooi.widodh.nl/cloudstack/build-dep/cloud-manageontap.jar"
+NONOSS="${NONOSS} http://zooi.widodh.nl/cloudstack/build-dep/vmware-vim.jar"
+NONOSS="${NONOSS} http://zooi.widodh.nl/cloudstack/build-dep/vmware-vim25.jar"
+NONOSS="${NONOSS} http://zooi.widodh.nl/cloudstack/build-dep/vmware-apputils.jar"
+NONOSS="${NONOSS} http://zooi.widodh.nl/cloudstack/build-dep/cloud-netscaler-jars.zip"
+
+PROCESSDIR=$PWD
+BASENAME=$(basename $0)
+
+GIT="$(which git)"
+GITPULL="${GIT} pull"
+GITCHECKOUT="${GIT} checkout"
+PROCESSXML="${PROCESSDIR}/process_api_xml"
+
+MVN='/home/harleypig/projects/apache-maven-3.0.5/bin/mvn'
+
+BASEDIR='/home/harleypig/projects/cloudstack'
+ORIGDIR="${BASEDIR}/cloudstack.orig"
+XMLFILES="${BASEDIR}/tools/apidoc/target"
+
+LOGDIR="${PROCESSDIR}/logs"
+SAVEDIR="${PROCESSDIR}/processed"
+
+function logit { echo "${BASENAME}: $@" | tee -a $LOGFILE; }
+function doit { logit "$@"; $@ 2>&1 | tee -a $LOGFILE; }
+
+LOGFILE="${LOGDIR}/${BASENAME}.log"
+[ -f $LOGFILE ] && $DEBUG doit rm $LOGFILE
+
+$DEBUG doit mkdir -p $LOGDIR
+$DEBUG doit mkdir -p $SAVEDIR
+$DEBUG cd $ORIGDIR
+$DEBUG logit cd $PWD
+$DEBUG doit $GITPULL
+
+$DEBUG cd $ORIGDIR/deps
+$DEBUG logit cd $PWD0
+
+for jar in $NONOSS; do
+  $DEBUG doit curl -LSsO $jar
+done
+
+$DEBUG mv cloud-manageontap.jar manageontap.jar
+$DEBUG mv vmware-apputils.jar apputils.jar
+$DEBUG mv vmware-vim.jar vim.jar
+$DEBUG mv vmware-vim25.jar vim25_51.jar
+$DEBUG mv unzip cloud-netscaler-jars.zip
+$DEBUG ./install-non-oss.sh
+
+cd ..
+$DEBUG cd $PROCESSDIR
+$DEBUG logit cd $PWD
+
+for tag in $TAGS; do
+
+  SAVEFILE="${SAVEDIR}/cloudstack.${tag}.yml"
+  WORKDIR="${BASEDIR}/cloudstack.${tag}"
+  LOGFILE="${LOGDIR}/${BASENAME}_${tag}.log"
+  [ -f $LOGFILE ] && $DEBUG doit rm $LOGFILE
+
+  $DEBUG doit mkdir -p $WORKDIR
+  $DEBUG doit rsync -aviHS --delete $ORIGDIR/ $WORKDIR/
+  $DEBUG cd $WORKDIR
+  $DEBUG logit "Changed to ${PWD} ..."
+  $DEBUG doit $GITCHECKOUT $tag
+  $DEBUG doit ${MVN} -Pdeps      -Dnoredist -DskipTests=true clean install
+  $DEBUG doit ${MVN} -Pdeveloper            -DskipTests=true clean install
+  $DEBUG cd $PROCESSDIR
+  $DEBUG doit $PROCESSXML $WORKDIR $SAVEFILE $tag
+
+done
