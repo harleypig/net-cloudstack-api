@@ -37,7 +37,8 @@ GITPULL="${GIT} pull"
 GITCHECKOUT="${GIT} checkout"
 PROCESSXML="${PROCESSDIR}/process_api_xml"
 
-MVN='/home/harleypig/projects/apache-maven-3.0.5/bin/mvn'
+MVNPATH='/home/harleypig/projects/apache-maven-3.0.5/bin'
+PATH="${MVNPATH}:${PATH}"
 
 BASEDIR='/home/harleypig/projects/cloudstack'
 ORIGDIR="${BASEDIR}/cloudstack.orig"
@@ -59,18 +60,18 @@ $DEBUG logit cd $PWD
 $DEBUG doit $GITPULL
 
 $DEBUG cd $ORIGDIR/deps
-$DEBUG logit cd $PWD0
+$DEBUG logit cd $PWD
 
 for jar in $NONOSS; do
-  $DEBUG doit curl -LSsO $jar
+  $DEBUG doit curl -LSsO -C - $jar
 done
 
-$DEBUG mv cloud-manageontap.jar manageontap.jar
-$DEBUG mv vmware-apputils.jar apputils.jar
-$DEBUG mv vmware-vim.jar vim.jar
-$DEBUG mv vmware-vim25.jar vim25_51.jar
-$DEBUG mv unzip cloud-netscaler-jars.zip
-$DEBUG ./install-non-oss.sh
+$DEBUG doit ln -f cloud-manageontap.jar manageontap.jar
+$DEBUG doit ln -f vmware-apputils.jar apputils.jar
+$DEBUG doit ln -f vmware-vim.jar vim.jar
+$DEBUG doit ln -f vmware-vim25.jar vim25_51.jar
+$DEBUG doit unzip -fo cloud-netscaler-jars.zip
+$DEBUG doit ./install-non-oss.sh
 
 cd ..
 $DEBUG cd $PROCESSDIR
@@ -88,8 +89,8 @@ for tag in $TAGS; do
   $DEBUG cd $WORKDIR
   $DEBUG logit "Changed to ${PWD} ..."
   $DEBUG doit $GITCHECKOUT $tag
-  $DEBUG doit ${MVN} -Pdeps      -Dnoredist -DskipTests=true clean install
-  $DEBUG doit ${MVN} -Pdeveloper            -DskipTests=true clean install
+  $DEBUG doit mvn -Pdeps      -Dnoredist -DskipTests=true clean install
+  $DEBUG doit mvn -Pdeveloper            -DskipTests=true clean install
   $DEBUG cd $PROCESSDIR
   $DEBUG doit $PROCESSXML $WORKDIR $SAVEFILE $tag
 
