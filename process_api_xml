@@ -19,7 +19,7 @@ my $basedir = shift
   or die "Must provide base directory to work from.\n";
 
 my $savefile = shift
-  or die "Must provide file to save xml to.\n";
+  or die "Must provide file to save yml to.\n";
 
 my $api_version = shift
   or die "Must provide api version number.\n";
@@ -276,7 +276,7 @@ for my $command ( @commands ) {
 
 my $new_commands = {
   commands => $commands,
-  api_version => $api_version,
+  api_version => "$api_version",
 };
 
 print "Saving commands to $savefile.\n";

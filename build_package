@@ -36,6 +36,7 @@ GIT="$(which git)"
 GITPULL="${GIT} pull"
 GITCHECKOUT="${GIT} checkout"
 PROCESSXML="${PROCESSDIR}/process_api_xml"
+PROCESSSECTION="${PROCESSDIR}/process_sections_xsl"
 
 MVNPATH='/home/harleypig/projects/apache-maven-3.0.5/bin'
 PATH="${MVNPATH}:${PATH}"
@@ -79,7 +80,8 @@ $DEBUG logit cd $PWD
 
 for tag in $TAGS; do
 
-  SAVEFILE="${SAVEDIR}/cloudstack.${tag}.yml"
+  SAVEMETHODFILE="${SAVEDIR}/cloudstack-api.${tag}.yml"
+  SAVESECTIONFILE="${SAVEDIR}/cloudstack-api-sections.${tag}.yml"
   WORKDIR="${BASEDIR}/cloudstack.${tag}"
   LOGFILE="${LOGDIR}/${BASENAME}_${tag}.log"
   [ -f $LOGFILE ] && $DEBUG doit rm $LOGFILE
@@ -92,6 +94,7 @@ for tag in $TAGS; do
   $DEBUG doit mvn -Pdeps      -Dnoredist -DskipTests=true clean install
   $DEBUG doit mvn -Pdeveloper            -DskipTests=true clean install
   $DEBUG cd $PROCESSDIR
-  $DEBUG doit $PROCESSXML $WORKDIR $SAVEFILE $tag
+  $DEBUG doit $PROCESSXML $WORKDIR $SAVEMETHODFILE $tag
+  $DEBUG doit $PROCESSSECTION $WORKDIR $SAVESECTIONFILE $tag
 
 done

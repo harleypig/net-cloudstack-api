@@ -1,0 +1,59 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use version;
+
+use Path::Tiny;
+use YAML::XS qw( DumpFile );
+
+my $basedir = shift
+  or die "Must pass base directory to work from.\n";
+
+my $savefile = shift
+  or die "Must pass filename to save section data to.\n";
+
+my $api_version = shift
+  or die "Must provide api version number.\n";
+
+$api_version = version->parse( $api_version );
+
+die "Invalid version format.\n"
+  unless $api_version->is_qv;
+
+my $section_dir = "${basedir}/tools/apidoc/target/xmldoc";
+
+my $root_file   = path( "${section_dir}/generatetocforadmin_include.xsl" );
+my $domain_file = path( "${section_dir}/generatetocfordomainadmin_include.xsl" );
+my $user_file   = path( "${section_dir}/generatetocforuser_include.xsl" );
+
+my $section;
+my $section_name = 'BAD';
+
+for my $line ( $root_file->lines, $domain_file->lines, $user_file->lines ) {
+
+  if ( $line =~ m{<h5>(.*?)</h5>} ) {
+
+    $section_name = $1;
+    $section_name =~ s/\s+//g;
+    next;
+
+  } elsif ( $line =~ m{<xsl:if\s+test="name='(.*?)'"} ) {
+
+    my $method = $1;
+
+    $section->{ $section_name }{ $method }++;
+    $section->{ list }{ $method }++ if $method =~ /^list/;
+
+    next;
+
+  }
+}
+
+my $new_section;
+
+$new_section->{ $_ } = [ sort keys $section->{ $_ } ]
+  for keys %$section;
+
+my $section_data = { section => $new_section, 'api-version' => "$api_version" };
+DumpFile( $savefile, $section_data );

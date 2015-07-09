@@ -1,0 +1,644 @@
+---
+api-version: 4.4.2
+section:
+  APIDiscovery:
+  - listApis
+  Account:
+  - addAccountToProject
+  - createAccount
+  - deleteAccount
+  - deleteAccountFromProject
+  - disableAccount
+  - enableAccount
+  - listAccounts
+  - listProjectAccounts
+  - lockAccount
+  - markDefaultZoneForAccount
+  - updateAccount
+  Address:
+  - associateIpAddress
+  - disassociateIpAddress
+  - listPublicIpAddresses
+  - updateIpAddress
+  AffinityGroup:
+  - createAffinityGroup
+  - deleteAffinityGroup
+  - listAffinityGroupTypes
+  - listAffinityGroups
+  - updateVMAffinityGroup
+  Alert:
+  - archiveAlerts
+  - deleteAlerts
+  - generateAlert
+  - listAlerts
+  Asyncjob:
+  - listAsyncJobs
+  - queryAsyncJobResult
+  AutoScale:
+  - createAutoScalePolicy
+  - createAutoScaleVmGroup
+  - createAutoScaleVmProfile
+  - createCondition
+  - createCounter
+  - deleteAutoScalePolicy
+  - deleteAutoScaleVmGroup
+  - deleteAutoScaleVmProfile
+  - deleteCondition
+  - deleteCounter
+  - disableAutoScaleVmGroup
+  - enableAutoScaleVmGroup
+  - listAutoScalePolicies
+  - listAutoScaleVmGroups
+  - listAutoScaleVmProfiles
+  - listConditions
+  - listCounters
+  - updateAutoScalePolicy
+  - updateAutoScaleVmGroup
+  - updateAutoScaleVmProfile
+  Baremetal:
+  - addBaremetalDhcp
+  - addBaremetalPxeKickStartServer
+  - addBaremetalPxePingServer
+  - listBaremetalDhcp
+  - listBaremetalPxeServers
+  BigSwitchVNS:
+  - addBigSwitchVnsDevice
+  - deleteBigSwitchVnsDevice
+  - listBigSwitchVnsDevices
+  Certificate:
+  - uploadCustomCertificate
+  CloudIdentifier:
+  - getCloudIdentifier
+  Cluster:
+  - addCluster
+  - dedicateCluster
+  - deleteCluster
+  - listClusters
+  - listDedicatedClusters
+  - releaseDedicatedCluster
+  - updateCluster
+  Configuration:
+  - addLdapConfiguration
+  - deleteLdapConfiguration
+  - listCapabilities
+  - listConfigurations
+  - listDeploymentPlanners
+  - listLdapConfigurations
+  - updateConfiguration
+  DiskOffering:
+  - createDiskOffering
+  - deleteDiskOffering
+  - listDiskOfferings
+  - updateDiskOffering
+  Domain:
+  - createDomain
+  - deleteDomain
+  - listDomainChildren
+  - listDomains
+  - updateDomain
+  Event:
+  - archiveEvents
+  - deleteEvents
+  - listEventTypes
+  - listEvents
+  Firewall:
+  - addPaloAltoFirewall
+  - configurePaloAltoFirewall
+  - createEgressFirewallRule
+  - createFirewallRule
+  - createPortForwardingRule
+  - deleteEgressFirewallRule
+  - deleteFirewallRule
+  - deletePaloAltoFirewall
+  - deletePortForwardingRule
+  - listEgressFirewallRules
+  - listFirewallRules
+  - listPaloAltoFirewalls
+  - listPortForwardingRules
+  - updateEgressFirewallRule
+  - updateFirewallRule
+  - updatePortForwardingRule
+  GuestOS:
+  - addGuestOs
+  - addGuestOsMapping
+  - listGuestOsMapping
+  - listOsCategories
+  - listOsTypes
+  - removeGuestOs
+  - removeGuestOsMapping
+  - updateGuestOs
+  - updateGuestOsMapping
+  Host:
+  - addBaremetalHost
+  - addHost
+  - addSecondaryStorage
+  - cancelHostMaintenance
+  - dedicateHost
+  - deleteHost
+  - findHostsForMigration
+  - listDedicatedHosts
+  - listHosts
+  - prepareHostForMaintenance
+  - reconnectHost
+  - releaseDedicatedHost
+  - releaseHostReservation
+  - updateHost
+  - updateHostPassword
+  Hypervisor:
+  - listHypervisorCapabilities
+  - listHypervisors
+  - updateHypervisorCapabilities
+  ISO:
+  - attachIso
+  - copyIso
+  - deleteIso
+  - detachIso
+  - extractIso
+  - listIsoPermissions
+  - listIsos
+  - registerIso
+  - updateIso
+  - updateIsoPermissions
+  ImageStore:
+  - addImageStore
+  - createSecondaryStagingStore
+  - deleteImageStore
+  - deleteSecondaryStagingStore
+  - listImageStores
+  - listSecondaryStagingStores
+  - updateCloudToUseObjectStore
+  InternalLB:
+  - configureInternalLoadBalancerElement
+  - createInternalLoadBalancerElement
+  - listInternalLoadBalancerElements
+  - listInternalLoadBalancerVMs
+  - startInternalLoadBalancerVM
+  - stopInternalLoadBalancerVM
+  LDAP:
+  - ldapCreateAccount
+  Limit:
+  - getApiLimit
+  - listResourceLimits
+  - resetApiLimit
+  - updateResourceCount
+  - updateResourceLimit
+  LoadBalancer:
+  - addNetscalerLoadBalancer
+  - assignCertToLoadBalancer
+  - assignToGlobalLoadBalancerRule
+  - assignToLoadBalancerRule
+  - configureNetscalerLoadBalancer
+  - createGlobalLoadBalancerRule
+  - createLBHealthCheckPolicy
+  - createLBStickinessPolicy
+  - createLoadBalancer
+  - createLoadBalancerRule
+  - deleteGlobalLoadBalancerRule
+  - deleteLBHealthCheckPolicy
+  - deleteLBStickinessPolicy
+  - deleteLoadBalancer
+  - deleteLoadBalancerRule
+  - deleteNetscalerLoadBalancer
+  - deleteSslCert
+  - listGlobalLoadBalancerRules
+  - listLBHealthCheckPolicies
+  - listLBStickinessPolicies
+  - listLoadBalancerRuleInstances
+  - listLoadBalancerRules
+  - listLoadBalancers
+  - listNetscalerLoadBalancers
+  - listSslCerts
+  - removeCertFromLoadBalancer
+  - removeFromGlobalLoadBalancerRule
+  - removeFromLoadBalancerRule
+  - updateGlobalLoadBalancerRule
+  - updateLBHealthCheckPolicy
+  - updateLBStickinessPolicy
+  - updateLoadBalancer
+  - updateLoadBalancerRule
+  - uploadSslCert
+  Login:
+  - login
+  Logout:
+  - logout
+  NAT:
+  - createIpForwardingRule
+  - deleteIpForwardingRule
+  - disableStaticNat
+  - enableStaticNat
+  - listIpForwardingRules
+  Network:
+  - addNetworkServiceProvider
+  - createNetwork
+  - createPhysicalNetwork
+  - createStorageNetworkIpRange
+  - dedicatePublicIpRange
+  - deleteNetwork
+  - deleteNetworkServiceProvider
+  - deletePhysicalNetwork
+  - deleteStorageNetworkIpRange
+  - listNetscalerLoadBalancerNetworks
+  - listNetworkIsolationMethods
+  - listNetworkServiceProviders
+  - listNetworks
+  - listNiciraNvpDeviceNetworks
+  - listPaloAltoFirewallNetworks
+  - listPhysicalNetworks
+  - listStorageNetworkIpRange
+  - listSupportedNetworkServices
+  - releasePublicIpRange
+  - restartNetwork
+  - updateNetwork
+  - updateNetworkServiceProvider
+  - updatePhysicalNetwork
+  - updateStorageNetworkIpRange
+  NetworkACL:
+  - createNetworkACL
+  - createNetworkACLList
+  - deleteNetworkACL
+  - deleteNetworkACLList
+  - listNetworkACLLists
+  - listNetworkACLs
+  - replaceNetworkACLList
+  - updateNetworkACLItem
+  - updateNetworkACLList
+  NetworkDevice:
+  - addNetworkDevice
+  - deleteNetworkDevice
+  - listNetworkDevice
+  NetworkOffering:
+  - createNetworkOffering
+  - deleteNetworkOffering
+  - listNetworkOfferings
+  - updateNetworkOffering
+  Nic:
+  - addIpToNic
+  - listNics
+  - removeIpFromNic
+  NiciraNVP:
+  - addNiciraNvpDevice
+  - deleteNiciraNvpDevice
+  - listNiciraNvpDevices
+  OvsElement:
+  - configureOvsElement
+  - listOvsElements
+  Pod:
+  - createPod
+  - dedicatePod
+  - deletePod
+  - listDedicatedPods
+  - listPods
+  - releaseDedicatedPod
+  - updatePod
+  Pool:
+  - createStoragePool
+  - deleteStoragePool
+  - findStoragePoolsForMigration
+  - listStoragePools
+  - updateStoragePool
+  PortableIP:
+  - createPortableIpRange
+  - deletePortableIpRange
+  - listPortableIpRanges
+  Project:
+  - activateProject
+  - createProject
+  - deleteProject
+  - deleteProjectInvitation
+  - listProjectInvitations
+  - listProjects
+  - suspendProject
+  - updateProject
+  - updateProjectInvitation
+  Region:
+  - addRegion
+  - listRegions
+  - removeRegion
+  - updateRegion
+  Resourcemetadata:
+  - addResourceDetail
+  - listResourceDetails
+  - removeResourceDetail
+  Resourcetags:
+  - createTags
+  - deleteTags
+  - listTags
+  Router:
+  - changeServiceForRouter
+  - configureVirtualRouterElement
+  - createVirtualRouterElement
+  - destroyRouter
+  - listRouters
+  - listVirtualRouterElements
+  - rebootRouter
+  - startRouter
+  - stopRouter
+  S3:
+  - addS3
+  - listS3s
+  SSH:
+  - createSSHKeyPair
+  - deleteSSHKeyPair
+  - listSSHKeyPairs
+  - registerSSHKeyPair
+  - resetSSHKeyForVirtualMachine
+  SecurityGroup:
+  - authorizeSecurityGroupEgress
+  - authorizeSecurityGroupIngress
+  - createSecurityGroup
+  - deleteSecurityGroup
+  - listSecurityGroups
+  - revokeSecurityGroupEgress
+  - revokeSecurityGroupIngress
+  ServiceOffering:
+  - createServiceOffering
+  - deleteServiceOffering
+  - listServiceOfferings
+  - updateServiceOffering
+  Snapshot:
+  - createSnapshot
+  - createSnapshotPolicy
+  - createVMSnapshot
+  - deleteSnapshot
+  - deleteSnapshotPolicies
+  - deleteVMSnapshot
+  - listSnapshotPolicies
+  - listSnapshots
+  - listVMSnapshot
+  - revertSnapshot
+  - revertToVMSnapshot
+  - updateSnapshotPolicy
+  StoragePool:
+  - cancelStorageMaintenance
+  - enableStorageMaintenance
+  - listStorageProviders
+  StratosphereSSP:
+  - addStratosphereSsp
+  Swift:
+  - addSwift
+  - listSwifts
+  SystemCapacity:
+  - listCapacity
+  SystemVM:
+  - changeServiceForSystemVm
+  - destroySystemVm
+  - listSystemVms
+  - migrateSystemVm
+  - rebootSystemVm
+  - scaleSystemVm
+  - startSystemVm
+  - stopSystemVm
+  Template:
+  - copyTemplate
+  - createTemplate
+  - deleteTemplate
+  - extractTemplate
+  - listTemplatePermissions
+  - listTemplates
+  - prepareTemplate
+  - registerTemplate
+  - updateTemplate
+  - updateTemplatePermissions
+  - upgradeRouterTemplate
+  UCS:
+  - addUcsManager
+  - associateUcsProfileToBlade
+  - listUcsBlades
+  - listUcsManagers
+  - listUcsProfiles
+  Usage:
+  - addTrafficMonitor
+  - addTrafficType
+  - deleteTrafficMonitor
+  - deleteTrafficType
+  - generateUsageRecords
+  - listTrafficMonitors
+  - listTrafficTypeImplementors
+  - listTrafficTypes
+  - listUsageRecords
+  - listUsageTypes
+  - updateTrafficType
+  User:
+  - createUser
+  - deleteUser
+  - disableUser
+  - enableUser
+  - getUser
+  - getVirtualMachineUserData
+  - importLdapUsers
+  - listLdapUsers
+  - listUsers
+  - lockUser
+  - registerUserKeys
+  - updateUser
+  VLAN:
+  - createVlanIpRange
+  - dedicateGuestVlanRange
+  - deleteVlanIpRange
+  - listDedicatedGuestVlanRanges
+  - listVlanIpRanges
+  - releaseDedicatedGuestVlanRange
+  VMGroup:
+  - createInstanceGroup
+  - deleteInstanceGroup
+  - listInstanceGroups
+  - updateInstanceGroup
+  VPC:
+  - createPrivateGateway
+  - createStaticRoute
+  - createVPC
+  - createVPCOffering
+  - deletePrivateGateway
+  - deleteStaticRoute
+  - deleteVPC
+  - deleteVPCOffering
+  - listPrivateGateways
+  - listStaticRoutes
+  - listVPCOfferings
+  - listVPCs
+  - restartVPC
+  - updateVPC
+  - updateVPCOffering
+  VPN:
+  - addVpnUser
+  - createRemoteAccessVpn
+  - createVpnConnection
+  - createVpnCustomerGateway
+  - createVpnGateway
+  - deleteRemoteAccessVpn
+  - deleteVpnConnection
+  - deleteVpnCustomerGateway
+  - deleteVpnGateway
+  - listRemoteAccessVpns
+  - listVpnConnections
+  - listVpnCustomerGateways
+  - listVpnGateways
+  - listVpnUsers
+  - removeVpnUser
+  - resetVpnConnection
+  - updateRemoteAccessVpn
+  - updateVpnConnection
+  - updateVpnCustomerGateway
+  - updateVpnGateway
+  VirtualMachine:
+  - addNicToVirtualMachine
+  - assignVirtualMachine
+  - changeServiceForVirtualMachine
+  - cleanVMReservations
+  - deployVirtualMachine
+  - destroyVirtualMachine
+  - expungeVirtualMachine
+  - getVMPassword
+  - listVirtualMachines
+  - migrateVirtualMachine
+  - migrateVirtualMachineWithVolume
+  - rebootVirtualMachine
+  - recoverVirtualMachine
+  - removeNicFromVirtualMachine
+  - resetPasswordForVirtualMachine
+  - restoreVirtualMachine
+  - scaleVirtualMachine
+  - startVirtualMachine
+  - stopVirtualMachine
+  - updateDefaultNicForVirtualMachine
+  - updateVirtualMachine
+  Volume:
+  - attachVolume
+  - createVolume
+  - deleteVolume
+  - detachVolume
+  - extractVolume
+  - listVolumes
+  - migrateVolume
+  - resizeVolume
+  - updateVolume
+  - uploadVolume
+  Zone:
+  - createZone
+  - dedicateZone
+  - deleteZone
+  - listDedicatedZones
+  - listZones
+  - releaseDedicatedZone
+  - updateZone
+  list:
+  - listAccounts
+  - listAffinityGroupTypes
+  - listAffinityGroups
+  - listAlerts
+  - listApis
+  - listAsyncJobs
+  - listAutoScalePolicies
+  - listAutoScaleVmGroups
+  - listAutoScaleVmProfiles
+  - listBaremetalDhcp
+  - listBaremetalPxeServers
+  - listBigSwitchVnsDevices
+  - listCapabilities
+  - listCapacity
+  - listClusters
+  - listConditions
+  - listConfigurations
+  - listCounters
+  - listDedicatedClusters
+  - listDedicatedGuestVlanRanges
+  - listDedicatedHosts
+  - listDedicatedPods
+  - listDedicatedZones
+  - listDeploymentPlanners
+  - listDiskOfferings
+  - listDomainChildren
+  - listDomains
+  - listEgressFirewallRules
+  - listEventTypes
+  - listEvents
+  - listFirewallRules
+  - listGlobalLoadBalancerRules
+  - listGuestOsMapping
+  - listHosts
+  - listHypervisorCapabilities
+  - listHypervisors
+  - listImageStores
+  - listInstanceGroups
+  - listInternalLoadBalancerElements
+  - listInternalLoadBalancerVMs
+  - listIpForwardingRules
+  - listIsoPermissions
+  - listIsos
+  - listLBHealthCheckPolicies
+  - listLBStickinessPolicies
+  - listLdapConfigurations
+  - listLdapUsers
+  - listLoadBalancerRuleInstances
+  - listLoadBalancerRules
+  - listLoadBalancers
+  - listNetscalerLoadBalancerNetworks
+  - listNetscalerLoadBalancers
+  - listNetworkACLLists
+  - listNetworkACLs
+  - listNetworkDevice
+  - listNetworkIsolationMethods
+  - listNetworkOfferings
+  - listNetworkServiceProviders
+  - listNetworks
+  - listNiciraNvpDeviceNetworks
+  - listNiciraNvpDevices
+  - listNics
+  - listOsCategories
+  - listOsTypes
+  - listOvsElements
+  - listPaloAltoFirewallNetworks
+  - listPaloAltoFirewalls
+  - listPhysicalNetworks
+  - listPods
+  - listPortForwardingRules
+  - listPortableIpRanges
+  - listPrivateGateways
+  - listProjectAccounts
+  - listProjectInvitations
+  - listProjects
+  - listPublicIpAddresses
+  - listRegions
+  - listRemoteAccessVpns
+  - listResourceDetails
+  - listResourceLimits
+  - listRouters
+  - listS3s
+  - listSSHKeyPairs
+  - listSecondaryStagingStores
+  - listSecurityGroups
+  - listServiceOfferings
+  - listSnapshotPolicies
+  - listSnapshots
+  - listSslCerts
+  - listStaticRoutes
+  - listStorageNetworkIpRange
+  - listStoragePools
+  - listStorageProviders
+  - listSupportedNetworkServices
+  - listSwifts
+  - listSystemVms
+  - listTags
+  - listTemplatePermissions
+  - listTemplates
+  - listTrafficMonitors
+  - listTrafficTypeImplementors
+  - listTrafficTypes
+  - listUcsBlades
+  - listUcsManagers
+  - listUcsProfiles
+  - listUsageRecords
+  - listUsageTypes
+  - listUsers
+  - listVMSnapshot
+  - listVPCOfferings
+  - listVPCs
+  - listVirtualMachines
+  - listVirtualRouterElements
+  - listVlanIpRanges
+  - listVolumes
+  - listVpnConnections
+  - listVpnCustomerGateways
+  - listVpnGateways
+  - listVpnUsers
+  - listZones
