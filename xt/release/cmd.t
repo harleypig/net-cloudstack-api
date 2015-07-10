@@ -4,14 +4,21 @@
 ## no critic qw( OTRS::ProhibitRequire )
 ## no critic qw( TestingAndDebugging::RequireUseStrict  )
 
-use Test::Most tests => 4;
+BEGIN {
+
+  use Test::Most;
+
+  plan skip_all => 'these tests are for release candidate testing'
+    unless $ENV{RELEASE_TESTING};
+
+}
 
 eval { require Test::Cmd };
 
-if ( $@ ) {
-  my $msg = 'Test::Cmd required to criticize code.';
-  plan skip_all => $msg;
-}
+plan skip_all => 'Test::Cmd required for these tests'
+  if $@;
+
+plan tests => 4;
 
 Test::Cmd->import();
 

@@ -4,15 +4,22 @@
 ## no critic qw( OTRS::ProhibitRequire )
 ## no critic qw( TestingAndDebugging::RequireUseStrict  )
 
-use Test::Most;
-use File::Find::Rule;
+BEGIN {
+
+  use Test::Most;
+
+  plan skip_all => 'these tests are for release candidate testing'
+    unless $ENV{RELEASE_TESTING};
+
+}
+
 
 eval { require Test::Vars };
 
-if ( $@ ) {
-  my $msg = 'Test::Vars required to criticize code.';
-  plan skip_all => $msg;
-}
+plan skip_all => 'Test::Vars required for these tests'
+  if $@;
+
+use File::Find::Rule;
 
 my @files = File::Find::Rule->file()->name( '*.pm' )->in( qw( lib t ) );
 

@@ -4,17 +4,22 @@
 ## no critic qw( OTRS::ProhibitRequire )
 ## no critic qw( TestingAndDebugging::RequireUseStrict  )
 
-use Test::Most;
+BEGIN {
+
+  use Test::Most;
+
+  plan skip_all => 'these tests are for release candidate testing'
+    unless $ENV{RELEASE_TESTING};
+
+}
 
 # Force author testing for this test.
 local $ENV{AUTHOR_TESTING} = 1;
 
 eval { require Test::Kwalitee };
 
-if ( $@ ) {
-  my $msg = 'Test::Kwalitee required to test kwalitee.';
-  plan( skip_all => $msg );
-}
+plan skip_all => 'Test::Kwalitee required to test kwalitee.'
+  if $@;
 
 my @tests = qw(
 

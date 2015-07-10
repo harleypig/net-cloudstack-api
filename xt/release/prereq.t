@@ -4,18 +4,21 @@
 ## no critic qw( OTRS::ProhibitRequire )
 ## no critic qw( TestingAndDebugging::RequireUseStrict  )
 
-use Test::Most;
+BEGIN {
 
-unless ( exists $ENV{TEST_PREREQ} ) {
-  my $msg = 'Set TEST_PREREQ if you want to test with Test::Prereq';
-  plan skip_all => $msg;
+  use Test::Most;
+
+  plan skip_all => 'these tests are for release candidate testing'
+    unless $ENV{RELEASE_TESTING};
+
 }
+
+plan skip_all => 'Set TEST_PREREQ if you want to test with Test::Prereq'
+  unless exists $ENV{TEST_PREREQ};
 
 eval { require Test::Prereq::Build };
 
-if ( $@ ) {
-  my $msg = 'Test::Prereq::Build required to test prerequisites.';
-  plan skip_all => $msg;
-}
+plan skip_all => 'Test::Prereq::Build required to test prerequisites.'
+  if $@;
 
 Test::Prereq::Build::prereq_ok();
