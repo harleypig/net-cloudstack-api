@@ -15,7 +15,7 @@ BEGIN {
 
 eval { require Test::Version };
 
-plan skip_all => 'Test::NoTabs required for these tests'
+plan skip_all => 'Test::Version required for these tests'
   if $@;
 
 my @imports = qw( version_all_ok );
