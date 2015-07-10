@@ -9,7 +9,7 @@ BEGIN {
   use Test::Most
 
   #plan skip_all => 'these tests are for testing by the author' 
-  plan skip_all => 'This is not working, fix when you have time.'
+  plan skip_all => 'This is not working, fix when you have time'
     unless $ENV{AUTHOR_TESTING};
 
 }
